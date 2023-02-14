@@ -83,6 +83,9 @@ public class Player : Agent, Icreature
     public int score { get; private set; } //agent's current score this episode
     int ConsecutiveWinsThisPhase = 0;
 
+    [SerializeField]
+    int ManualMaxStep = 1000;
+
     private void Awake()
     {
         score = 0;
@@ -108,11 +111,25 @@ public class Player : Agent, Icreature
 
     }
 
+    public override void Initialize()
+    {
+        MaxStep = 0;
+
+        if (!Academy.Instance.IsCommunicatorOn)
+        {
+            this.MaxStep = 0;
+        }
+    }
+
     public override void OnEpisodeBegin()
     {
         //base.OnEpisodeBegin();
 
         Debug.Log("Episode Start");
+
+        score = 0;
+
+        SetMaxStep();
 
         gameManager.StartMatch();        
 
@@ -154,10 +171,7 @@ public class Player : Agent, Icreature
             shootWeapon(shootingPoint);
         }
 
-        ResetInput();
-    }
-    void LateUpdate()
-    {
+
         //Rotate
         transform.localRotation = originalRotation[1] * lookInput[1];
         playerCamera.localRotation = originalRotation[0] * lookInput[0];
@@ -170,6 +184,18 @@ public class Player : Agent, Icreature
                 StartCoroutine(StepDelay());
             }
         }
+
+        ResetInput();
+
+        if (StepCount > ManualMaxStep) //manually end episode
+        {
+            EndEpisodeInFailure();
+        }
+    }
+
+    void LateUpdate()
+    {
+
     }
 
     // Generates the simulated output to the neural network
@@ -264,16 +290,15 @@ public class Player : Agent, Icreature
         shooting = false;
     }
 
-
-    private Quaternion[] MouseInput(float XInput, float YInput)
+    private Quaternion[] MouseInput(float YInput, float XInput)
     {
         //Resets the average rotation
         rotAverageY = 0f;
         rotAverageX = 0f;
 
         //Gets rotational input from the mouse
-        rotationY += (Input.GetAxis("Mouse Y") * sensitivity) * 100 * Time.deltaTime;
-        rotationX += (Input.GetAxis("Mouse X") * sensitivity) * 100 * Time.deltaTime;
+        rotationY += (YInput * sensitivity) * 100 * Time.deltaTime;
+        rotationX += (XInput * sensitivity) * 100 * Time.deltaTime;
 
         rotationY = Mathf.Clamp(rotationY, -90, 90);
 
@@ -375,9 +400,10 @@ public class Player : Agent, Icreature
     public void ReceiveLocation(VisionInfo info)
     {
         Vector3 direction = info.pos - this.transform.position;
-        float angle = Vector3.Angle(direction, this.transform.forward);
+        float horizontalAngle = Vector3.Angle(direction, this.transform.forward);
+        float verticalAngle = Vector3.Angle(direction, playerCamera.forward);
 
-        if (angle < 45) //enemy is within the agent's field of vision
+        if (horizontalAngle < 45 && verticalAngle < 35) //enemy is within the agent's field of vision
         {
             RaycastHit hit;
             if (Physics.Raycast(transform.localPosition, direction, out hit, 1000))
@@ -389,17 +415,26 @@ public class Player : Agent, Icreature
                     Debug.DrawLine(transform.localPosition, hit.point, Color.red);
                     lastEnemySeenPosition = info.pos;
                     lastEnemyRotation = info.degreeRotation;
+
+                    if (horizontalAngle < 15f && verticalAngle < 10f) //agent has enemy in target sight
+                    {
+                        Debug.DrawLine(transform.localPosition, hit.point, Color.red);
+                        AddReward(0.0006f);
+                    }
+                    else {
+                        Debug.DrawLine(transform.localPosition, hit.point, Color.yellow);
+                        AddReward(0.0003f);
+                    }
+
                 }
                 else //enemy is blocked by something
                 {
                     Debug.DrawLine(transform.localPosition, hit.point, Color.green);
                 }
-
             }
             else
             {
                 Debug.DrawRay(transform.localPosition, direction * 1000, Color.blue);
-
             }
         }
     }
@@ -413,6 +448,11 @@ public class Player : Agent, Icreature
         currentHealth = maxHealth;
         canShoot = true;
         canStep = true;
+
+        lastEnemyHeardPosition = new Vector3(999, 999, 999);
+        lastEnemyRotation = 9999;
+        lastEnemySeenPosition = new Vector3(999, 999, 999);
+        nearestHealthKit = new Vector3(999, 999, 999);
 
         //Debug.Log($"{gameObject.name}: health is now {currentHealth}");
 
@@ -445,8 +485,6 @@ public class Player : Agent, Icreature
 
             if (currentHealth > maxHealth) currentHealth = maxHealth; //don't let health overflow over the max 
             Debug.Log($"health is now {currentHealth}");
-
-
             
 
             return true;
@@ -491,30 +529,16 @@ public class Player : Agent, Icreature
 
         if (info.Hit)
         {
-            AddReward(0.0008f); //reward for hitting enemy
+            AddReward(0.01f); //reward for hitting enemy
 
             if (info.Destroy)
             {
-                AddReward(0.16f); //Reward for destroying enemy
+                AddReward(0.2f); //Reward for destroying enemy
                 score++;                
 
                 if (score == gameManager.maxScore) //if agent reaches max score, end episode
                 {
-                    score = 0;
-
-                    Debug.Log("ending episode");
-                    AddReward(1);
-
-                    ConsecutiveWinsThisPhase++;
-                    if (ConsecutiveWinsThisPhase == 5)
-                    {
-                        ConsecutiveWinsThisPhase = 0;
-                        EnvironmentManager.inst.MoveToNextPhase();
-                    }
-
-                    //end episode
-                    gameManager.EndEpisode();
-                    EndEpisode(); //end current episode
+                    EndEpisodeInSuccess();
                 }
                 else //if max has not been reaches, respawn opponent, continue episode
                 {
@@ -531,5 +555,62 @@ public class Player : Agent, Icreature
     public void Store()
     {
         //do nothing
+    }
+
+    private void EndEpisodeInSuccess()
+    {
+        score = 0;
+
+        Debug.Log("ending episode in sucess");
+        AddReward(1);
+
+        ConsecutiveWinsThisPhase++;
+        if (ConsecutiveWinsThisPhase == 5)
+        {
+            ConsecutiveWinsThisPhase = 0;
+            EnvironmentManager.inst.MoveToNextPhase();
+        }
+
+        //end episode
+        gameManager.EndEpisode();
+        EndEpisode(); //end current episode
+    }
+
+    private void EndEpisodeInFailure()
+    {
+        score = 0;
+
+        gameManager.EndEpisode();
+
+        ConsecutiveWinsThisPhase = 0;
+
+        EndEpisode();
+    }
+
+    private void SetMaxStep()
+    {
+        switch (EnvironmentManager.inst.currentPhase)
+        {
+            case EnvironmentManager.CurriculumPhase.DestroyImmobileTarget1:
+                this.ManualMaxStep = 500;
+                break;
+            case EnvironmentManager.CurriculumPhase.DestroyImmobileTarget2:
+                this.ManualMaxStep = 800;
+                break;
+            case EnvironmentManager.CurriculumPhase.DestroyImmobileTarget3:
+                this.ManualMaxStep = 1300;
+                break;
+            case EnvironmentManager.CurriculumPhase.DestroyImmobileTarget4:
+                this.ManualMaxStep = 25000;
+                break;
+            case EnvironmentManager.CurriculumPhase.DestroyMobileTarget:
+                this.ManualMaxStep = 3000;
+                break;
+            case EnvironmentManager.CurriculumPhase.BattleSelf:
+                this.ManualMaxStep = 50000;
+                break;
+            default:
+                break;
+        }
     }
 }

@@ -14,6 +14,10 @@ public class LaserProjectile : Projectile
 
     HitInfo hitInfo;
 
+    Color HitEnemyColor = Color.red;
+    Color HitEnvironmentColor = Color.yellow;
+    Color HitNothingColor = Color.blue;
+
 
     // Start is called before the first frame update
     void Start()
@@ -27,17 +31,22 @@ public class LaserProjectile : Projectile
             end = hit.point;
             end = start + direction * hit.distance;
 
-            lineRenderer.startColor = Color.red;
-            lineRenderer.endColor = Color.red;
+
 
             Icreature l = hit.collider.GetComponent<Icreature>();
             if (l != null)
             {
+                lineRenderer.startColor = HitEnemyColor;
+                lineRenderer.endColor = HitEnemyColor;
+
                 bool killed = l.ReceiveDamage(damage);
                 shooter.SetHitStatus(new HitInfo( true, killed, l));
             }
             else
             {
+                lineRenderer.startColor = HitEnvironmentColor;
+                lineRenderer.endColor = HitEnvironmentColor;
+
                 shooter.SetHitStatus(new HitInfo(false, false, null));
             }
         }
@@ -45,8 +54,8 @@ public class LaserProjectile : Projectile
         {
             end = start + direction * 100;
 
-            lineRenderer.startColor = Color.blue;
-            lineRenderer.endColor = Color.blue;
+            lineRenderer.startColor = HitNothingColor;
+            lineRenderer.endColor = HitNothingColor;
             shooter.SetHitStatus(new HitInfo(false, false, null));
         }
 

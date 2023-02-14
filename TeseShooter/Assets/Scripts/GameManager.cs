@@ -41,9 +41,6 @@ public class GameManager : MonoBehaviour
 
     public int maxScore { get; private set; } //max score in curriculum phase    
 
-
-
-
     private void Awake()
     {
         if (_instance != null && _instance != this)
@@ -64,7 +61,7 @@ public class GameManager : MonoBehaviour
     void Start()
     {
         
-    }
+    }    
 
     // Update is called once per frame
     void Update()
@@ -95,7 +92,10 @@ public class GameManager : MonoBehaviour
 
                 break;
             case EnvironmentManager.CurriculumPhase.DestroyMobileTarget: //max score: 3
-                maxScore = 3;               
+                maxScore = 3;
+
+                FetchOpponent(MobileTarget);
+                IntermediateTraining();
 
                 break;
             case EnvironmentManager.CurriculumPhase.BattleSelf: //max score: 5
@@ -141,6 +141,11 @@ public class GameManager : MonoBehaviour
 
     void IntermediateTraining()
     {
+
+        MatchParticipants.Clear();
+        MatchParticipants.Add(player);
+        MatchParticipants.Add(Opponent);
+
         //1. Set Obstacles on
         ObstacleManager.inst.Activate();
 
@@ -150,14 +155,10 @@ public class GameManager : MonoBehaviour
 
         //3. Spawn Target in furthest away spawner
 
-        PlayerSpawner ESpawner = SpawnInFurthestSpawner(pSpawner, Opponent);
-
-        
+        PlayerSpawner ESpawner = SpawnInFurthestSpawner(pSpawner, Opponent);       
 
 
     }
-
-
 
     //Continue episode in case the score isn't maxed yet
     public void ContinueEpisode()
@@ -170,12 +171,20 @@ public class GameManager : MonoBehaviour
 
                 break;
             case EnvironmentManager.CurriculumPhase.DestroyImmobileTarget3:
+                SpawnImmobileAgent3();
                 break;
             case EnvironmentManager.CurriculumPhase.DestroyImmobileTarget4:
+                
+                SpawnInFurthestSpawner(player.transform.position, Opponent);
+
                 break;
             case EnvironmentManager.CurriculumPhase.DestroyMobileTarget:
+
+                SpawnInFurthestSpawner(player.transform.position, Opponent);
+
                 break;
             case EnvironmentManager.CurriculumPhase.BattleSelf:
+
                 break;
             default:
                 break;
@@ -185,6 +194,8 @@ public class GameManager : MonoBehaviour
 
     public void EndEpisode()
     {
+        Debug.Log("Ending Episode");
+
         foreach (var p in MatchParticipants)
         {
             p.SetToSleep();
@@ -194,9 +205,9 @@ public class GameManager : MonoBehaviour
         MatchParticipants.Clear();
     }
 
-    private void FetchOpponent(GameObject OpponentPrefab)
+    private void FetchOpponent(GameObject OpponentObject)
     {
-        Icreature l = OpponentPrefab.GetComponent<Icreature>();
+        Icreature l = OpponentObject.GetComponent<Icreature>();
         Opponent = l;
         l.SetToSleep();   
     }
@@ -307,6 +318,27 @@ public class GameManager : MonoBehaviour
         {
             if (s == pSpawner) continue;
             float dist = Vector3.Distance(pSpawner.transform.position, s.transform.position);
+
+            if (dist > furthestDist)
+            {
+                furthestDist = dist;
+                furthest = s;
+            }
+        }
+
+        furthest.SpawnEntity(opponent);
+
+        return furthest;
+    }
+
+    private PlayerSpawner SpawnInFurthestSpawner(Vector3 location, Icreature opponent)
+    {
+        PlayerSpawner furthest = playerSpawners[0];
+        float furthestDist = Vector3.Distance(location, furthest.transform.position);
+
+        foreach (var s in playerSpawners)
+        {
+            float dist = Vector3.Distance(location, s.transform.position);
 
             if (dist > furthestDist)
             {
