@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 4884243280692340830}
   - component: {fileID: 8264091835813348310}
   - component: {fileID: 8309015816463764825}
+  - component: {fileID: -7369938759727465956}
   m_Layer: 3
   m_Name: MobileTarget
   m_TagString: Untagged
@@ -135,10 +136,10 @@ NavMeshAgent:
   m_AutoTraverseOffMeshLink: 1
   m_AutoBraking: 1
   m_AutoRepath: 1
-  m_Height: 2
-  m_BaseOffset: 0
+  m_Height: 1
+  m_BaseOffset: 1
   m_WalkableMask: 4294967295
-  m_ObstacleAvoidanceType: 4
+  m_ObstacleAvoidanceType: 2
 --- !u!114 &8309015816463764825
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -154,3 +155,16 @@ MonoBehaviour:
   maxHealth: 100
   gameManager: {fileID: 0}
   storageSpace: {fileID: 0}
+  waypoints: []
+--- !u!114 &-7369938759727465956
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3133633846263142396}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b80bbc060c000ad43af37ab36c16e6d9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

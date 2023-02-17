@@ -7,15 +7,21 @@ public class AIBehaviour : MonoBehaviour
     protected MobileTarget owner;
     public MobileTarget Owner => owner;
 
-    private bool arrived = false; //has the gameObject arrived yet?
+    protected bool arrived = false; //has the gameObject arrived yet?
 
-    private bool active = false; //is this behaviour active?
+    protected bool active = false; //is this behaviour active?
     public bool Active => active;
 
-    protected void Awake()
+    protected virtual void Awake()
     {
         owner = GetComponent<MobileTarget>();
     }
+
+    public virtual void Initiate()
+    {
+
+    }
+
 
     // Start is called before the first frame update
     void Start()

@@ -27,7 +27,7 @@ public class TestBullet : Projectile
 
     private void FixedUpdate()
     {
-        transform.position += direction * velocity * 0.04f;
+        transform.localPosition += direction * velocity * 0.04f;
     }
 
     private IEnumerator CountDownToDeath(float time)

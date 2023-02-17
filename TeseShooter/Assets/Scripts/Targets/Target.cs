@@ -11,8 +11,6 @@ public class Target : MonoBehaviour, Icreature
     protected bool moving = false;
     protected bool canStep = true; //can the entity play a step sound?
 
-
-    [SerializeField]
     public GameManager gameManager;
     protected int currentScore;
 
@@ -21,8 +19,9 @@ public class Target : MonoBehaviour, Icreature
     [SerializeField]
     Transform storageSpace;
 
-    private void Awake()
+    protected virtual void Awake()
     {
+        gameManager = GetComponentInParent<GameManager>();
         currentHealth = maxHealth;
         currentScore = 0;
     }
@@ -113,7 +112,7 @@ public class Target : MonoBehaviour, Icreature
 
     protected void PlaySound()
     {
-        Vector3 position = this.transform.position;
+        Vector3 position = this.transform.localPosition;
         Icreature e = this;
 
         SoundInfo info = new SoundInfo(position, e);
@@ -135,7 +134,7 @@ public class Target : MonoBehaviour, Icreature
     /// </summary>
     protected void TransmitLocation()
     {
-        Vector3 location = this.transform.position;
+        Vector3 location = this.transform.localPosition;
         float rotation = this.transform.eulerAngles.y;
         Icreature entity = this;
 
@@ -166,7 +165,7 @@ public class Target : MonoBehaviour, Icreature
 
     public void Store()
     {
-        transform.position = storageSpace.position;
+        transform.localPosition = storageSpace.localPosition;
         transform.rotation = Quaternion.identity;
 
 

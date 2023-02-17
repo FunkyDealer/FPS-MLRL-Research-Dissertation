@@ -26,12 +26,10 @@ public class LaserProjectile : Projectile
 
         RaycastHit hit;
         // Does the ray intersect any objects excluding the player layer
-        if (Physics.Raycast(transform.position, direction, out hit, 100, HittableLayers))
+        if (Physics.Raycast(transform.localPosition, direction, out hit, 100, HittableLayers))
         {
             end = hit.point;
             end = start + direction * hit.distance;
-
-
 
             Icreature l = hit.collider.GetComponent<Icreature>();
             if (l != null)

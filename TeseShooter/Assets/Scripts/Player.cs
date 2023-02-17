@@ -14,8 +14,7 @@ public class Player : Agent, Icreature
     protected bool moving = false;
     protected bool canStep = true; //can the entity play a step sound?
 
-    [SerializeField]
-    public GameManager gameManager;
+    GameManager gameManager;
     protected int currentScore;
 
     protected bool canShoot = true;
@@ -85,15 +84,18 @@ public class Player : Agent, Icreature
 
     [SerializeField]
     int ManualMaxStep = 1000;
+    
 
     private void Awake()
     {
+        gameManager = GetComponentInParent<GameManager>();
         score = 0;
     }
 
     // Start is called before the first frame update
     void Start()
-    {
+    {      
+
         myRigidbody = GetComponent<Rigidbody>();
 
         currentEquipedWeapon = StartingWeapon;
@@ -108,6 +110,7 @@ public class Player : Agent, Icreature
 
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+
 
     }
 
@@ -186,6 +189,7 @@ public class Player : Agent, Icreature
         }
 
         ResetInput();
+
 
         if (StepCount > ManualMaxStep) //manually end episode
         {
@@ -373,14 +377,12 @@ public class Player : Agent, Icreature
         l.shooter = this;
     }
 
-
     public void receiveSound(SoundInfo sound)
     {
         //Handle sound receiving
 
         //Debug.Log($"{gameObject.name}: heard sound from {sound.pos} by {sound.emitter.gameObject.name}");
         lastEnemyHeardPosition = sound.pos;
-
     }
 
     /// <summary>
@@ -388,7 +390,7 @@ public class Player : Agent, Icreature
     /// </summary>
     protected void TransmitLocation()
     {
-        Vector3 location = this.transform.position;
+        Vector3 location = this.transform.localPosition;
         float rotation = this.transform.eulerAngles.y;
         Icreature entity = this;
 
@@ -399,46 +401,48 @@ public class Player : Agent, Icreature
 
     public void ReceiveLocation(VisionInfo info)
     {
-        Vector3 direction = info.pos - this.transform.position;
+        Vector3 direction = info.pos - this.transform.localPosition;
         float horizontalAngle = Vector3.Angle(direction, this.transform.forward);
         float verticalAngle = Vector3.Angle(direction, playerCamera.forward);
 
         if (horizontalAngle < 45 && verticalAngle < 35) //enemy is within the agent's field of vision
         {
             RaycastHit hit;
-            if (Physics.Raycast(transform.localPosition, direction, out hit, 1000))
+            if (Physics.Raycast(transform.position, direction, out hit, 1000))
             {
                 //Debug.DrawRay(transform.localPosition, direction * hit.distance, Color.red);
 
                 if (hit.collider.gameObject.CompareTag("Player")) //Agent can see the Enemy
                 {
-                    Debug.DrawLine(transform.localPosition, hit.point, Color.red);
+                    Debug.DrawLine(transform.position, hit.point, Color.red);
                     lastEnemySeenPosition = info.pos;
                     lastEnemyRotation = info.degreeRotation;
 
                     if (horizontalAngle < 15f && verticalAngle < 10f) //agent has enemy in target sight
                     {
-                        Debug.DrawLine(transform.localPosition, hit.point, Color.red);
+                        Debug.DrawLine(transform.position, hit.point, Color.red);
                         AddReward(0.0006f);
                     }
                     else {
-                        Debug.DrawLine(transform.localPosition, hit.point, Color.yellow);
+                        Debug.DrawLine(transform.position, hit.point, Color.yellow);
                         AddReward(0.0003f);
                     }
-
                 }
                 else //enemy is blocked by something
                 {
-                    Debug.DrawLine(transform.localPosition, hit.point, Color.green);
+                    Debug.DrawLine(transform.position, hit.point, Color.green);
                 }
             }
             else
             {
-                Debug.DrawRay(transform.localPosition, direction * 1000, Color.blue);
+                Debug.DrawRay(transform.position, direction * 1000, Color.blue);
             }
         }
+        else if (verticalAngle > 60) //check to see if the agent isn't looking up or down, which is unnecessary 
+        {
+                AddReward(-0.005f);
+        }
     }
-
     public void Respawn(Vector3 location, Quaternion rotation)
     {
         //gameObject.SetActive(true);
@@ -464,7 +468,7 @@ public class Player : Agent, Icreature
 
     protected void PlaySound()
     {
-        Vector3 position = this.transform.position;
+        Vector3 position = this.transform.localPosition;
         Icreature e = this;
 
         SoundInfo info = new SoundInfo(position, e);
@@ -568,7 +572,7 @@ public class Player : Agent, Icreature
         if (ConsecutiveWinsThisPhase == 5)
         {
             ConsecutiveWinsThisPhase = 0;
-            EnvironmentManager.inst.MoveToNextPhase();
+            gameManager.MoveToNextPhase();
         }
 
         //end episode
@@ -589,24 +593,24 @@ public class Player : Agent, Icreature
 
     private void SetMaxStep()
     {
-        switch (EnvironmentManager.inst.currentPhase)
+        switch (gameManager.currentPhase)
         {
-            case EnvironmentManager.CurriculumPhase.DestroyImmobileTarget1:
+            case GameManager.CurriculumPhase.DestroyImmobileTarget1:
                 this.ManualMaxStep = 500;
                 break;
-            case EnvironmentManager.CurriculumPhase.DestroyImmobileTarget2:
+            case GameManager.CurriculumPhase.DestroyImmobileTarget2:
                 this.ManualMaxStep = 800;
                 break;
-            case EnvironmentManager.CurriculumPhase.DestroyImmobileTarget3:
+            case GameManager.CurriculumPhase.DestroyImmobileTarget3:
                 this.ManualMaxStep = 1300;
                 break;
-            case EnvironmentManager.CurriculumPhase.DestroyImmobileTarget4:
+            case GameManager.CurriculumPhase.DestroyImmobileTarget4:
                 this.ManualMaxStep = 25000;
                 break;
-            case EnvironmentManager.CurriculumPhase.DestroyMobileTarget:
+            case GameManager.CurriculumPhase.DestroyMobileTarget:
                 this.ManualMaxStep = 3000;
                 break;
-            case EnvironmentManager.CurriculumPhase.BattleSelf:
+            case GameManager.CurriculumPhase.BattleSelf:
                 this.ManualMaxStep = 50000;
                 break;
             default:

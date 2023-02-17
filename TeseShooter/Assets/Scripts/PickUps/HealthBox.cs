@@ -44,7 +44,7 @@ public class HealthBox : MonoBehaviour
     public virtual void Respawn(Vector3 location, Quaternion rotation)
     {
         gameObject.SetActive(true);
-        transform.position = location;
+        transform.localPosition = location;
         transform.rotation = rotation;
 
         inPlay = true;
@@ -52,7 +52,7 @@ public class HealthBox : MonoBehaviour
 
     public void Store()
     {
-        transform.position = StorageSpace.position;
+        transform.localPosition = StorageSpace.localPosition;
         transform.rotation = Quaternion.identity;
 
         gameObject.SetActive(false);

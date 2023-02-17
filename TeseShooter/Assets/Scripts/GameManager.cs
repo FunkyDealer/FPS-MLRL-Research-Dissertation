@@ -5,8 +5,17 @@ using System.Linq;
 
 public class GameManager : MonoBehaviour
 {
-    private static GameManager _instance;
-    public static GameManager inst { get { return _instance; } }
+    public enum CurriculumPhase
+    {
+        DestroyImmobileTarget1,     //Phase 1 - Destroy Target directly in front
+        DestroyImmobileTarget2,     //Phase 2 - Destroy Target that is slightly off centered from the front of the agent
+        DestroyImmobileTarget3,     //Phase 3 - Destroy target that spawns randomly arround agent
+        DestroyImmobileTarget4,     //Phase 4 - Find and Destroy target in arena
+        DestroyMobileTarget,        //Phase 5 - Find and destroy target that moves in arena
+        BattleSelf                  //Phase 6 - Agent Fights agaisnt itself
+    }
+
+    public CurriculumPhase currentPhase;
 
     [SerializeField]
     public Player player;
@@ -39,43 +48,38 @@ public class GameManager : MonoBehaviour
     [SerializeField]
     GameObject AgentClone;
 
-    public int maxScore { get; private set; } //max score in curriculum phase    
+    public int maxScore { get; private set; } //max score in curriculum phase
+
+    [SerializeField]
+    private ObstacleManager obstacleManager;
 
     private void Awake()
     {
-        if (_instance != null && _instance != this)
-        {
-            Destroy(this.gameObject);
-        }
-        else
-        {
-            _instance = this;
-        }
-         
+
         if (MatchParticipants == null) MatchParticipants = new List<Icreature>();
-     
+
     }
 
 
     // Start is called before the first frame update
     void Start()
     {
-        
-    }    
+
+    }
 
     // Update is called once per frame
     void Update()
     {
-        
+
     }
 
     public void StartMatch()
     {
-        switch (EnvironmentManager.inst.currentPhase)
+        switch (currentPhase)
         {
-            case EnvironmentManager.CurriculumPhase.DestroyImmobileTarget1: //Max score: 1
-            case EnvironmentManager.CurriculumPhase.DestroyImmobileTarget2: //max score: 1
-            case EnvironmentManager.CurriculumPhase.DestroyImmobileTarget3: //max score: 1
+            case CurriculumPhase.DestroyImmobileTarget1: //Max score: 1
+            case CurriculumPhase.DestroyImmobileTarget2: //max score: 1
+            case CurriculumPhase.DestroyImmobileTarget3: //max score: 1
                 maxScore = 1;
 
                 FetchOpponent(Immobiletarget);
@@ -83,7 +87,7 @@ public class GameManager : MonoBehaviour
                 StartBasicTraining();
 
                 break;
-            case EnvironmentManager.CurriculumPhase.DestroyImmobileTarget4: //max score: 1
+            case CurriculumPhase.DestroyImmobileTarget4: //max score: 1
                 maxScore = 2;
 
                 FetchOpponent(Immobiletarget);
@@ -91,14 +95,14 @@ public class GameManager : MonoBehaviour
                 IntermediateTraining();
 
                 break;
-            case EnvironmentManager.CurriculumPhase.DestroyMobileTarget: //max score: 3
+            case CurriculumPhase.DestroyMobileTarget: //max score: 3
                 maxScore = 3;
 
                 FetchOpponent(MobileTarget);
                 IntermediateTraining();
 
                 break;
-            case EnvironmentManager.CurriculumPhase.BattleSelf: //max score: 5
+            case CurriculumPhase.BattleSelf: //max score: 5
                 maxScore = 4;
 
                 break;
@@ -110,7 +114,7 @@ public class GameManager : MonoBehaviour
     void StartBasicTraining()
     {
         //1. Set Obstacles off
-        ObstacleManager.inst.DeActive();
+        obstacleManager.DeActive();
 
         //2. Spawn Agent in middle
         PlayerTrainingSpawner.SpawnEntity(player);
@@ -118,24 +122,24 @@ public class GameManager : MonoBehaviour
 
         MatchParticipants.Clear();
         MatchParticipants.Add(player);
-        MatchParticipants.Add(Opponent);      
+        MatchParticipants.Add(Opponent);
 
         //3. Spawn Target 
-        if (EnvironmentManager.inst.currentPhase == EnvironmentManager.CurriculumPhase.DestroyImmobileTarget1)
+        if (currentPhase == CurriculumPhase.DestroyImmobileTarget1)
         {
             //directly in front of agent
             SpawnImmobileAgent1();
         }
-        else if (EnvironmentManager.inst.currentPhase == EnvironmentManager.CurriculumPhase.DestroyImmobileTarget2)
+        else if (currentPhase == CurriculumPhase.DestroyImmobileTarget2)
         {
             //In front of agent
             SpawnImmobileAgent2();
         }
-        else if (EnvironmentManager.inst.currentPhase == EnvironmentManager.CurriculumPhase.DestroyImmobileTarget3)
+        else if (currentPhase == CurriculumPhase.DestroyImmobileTarget3)
         {
             //in a random spawner around the middle
             SpawnImmobileAgent3();
-        }      
+        }
 
     }
 
@@ -147,7 +151,7 @@ public class GameManager : MonoBehaviour
         MatchParticipants.Add(Opponent);
 
         //1. Set Obstacles on
-        ObstacleManager.inst.Activate();
+        obstacleManager.Activate();
 
         //2. Spawn Agent in a random pre place spawner
 
@@ -155,7 +159,7 @@ public class GameManager : MonoBehaviour
 
         //3. Spawn Target in furthest away spawner
 
-        PlayerSpawner ESpawner = SpawnInFurthestSpawner(pSpawner, Opponent);       
+        PlayerSpawner ESpawner = SpawnInFurthestSpawner(pSpawner, Opponent);
 
 
     }
@@ -163,27 +167,27 @@ public class GameManager : MonoBehaviour
     //Continue episode in case the score isn't maxed yet
     public void ContinueEpisode()
     {
-        switch (EnvironmentManager.inst.currentPhase)
+        switch (currentPhase)
         {
-            case EnvironmentManager.CurriculumPhase.DestroyImmobileTarget2:
+            case CurriculumPhase.DestroyImmobileTarget2:
 
                 SpawnImmobileAgent2();
 
                 break;
-            case EnvironmentManager.CurriculumPhase.DestroyImmobileTarget3:
+            case CurriculumPhase.DestroyImmobileTarget3:
                 SpawnImmobileAgent3();
                 break;
-            case EnvironmentManager.CurriculumPhase.DestroyImmobileTarget4:
-                
-                SpawnInFurthestSpawner(player.transform.position, Opponent);
+            case CurriculumPhase.DestroyImmobileTarget4:
+
+                SpawnInFurthestSpawner(player.transform.localPosition, Opponent);
 
                 break;
-            case EnvironmentManager.CurriculumPhase.DestroyMobileTarget:
+            case CurriculumPhase.DestroyMobileTarget:
 
-                SpawnInFurthestSpawner(player.transform.position, Opponent);
+                SpawnInFurthestSpawner(player.transform.localPosition, Opponent);
 
                 break;
-            case EnvironmentManager.CurriculumPhase.BattleSelf:
+            case CurriculumPhase.BattleSelf:
 
                 break;
             default:
@@ -209,7 +213,7 @@ public class GameManager : MonoBehaviour
     {
         Icreature l = OpponentObject.GetComponent<Icreature>();
         Opponent = l;
-        l.SetToSleep();   
+        l.SetToSleep();
     }
 
     private void CleanUpOpponent()
@@ -312,12 +316,12 @@ public class GameManager : MonoBehaviour
         PlayerSpawner furthest = playerSpawners[0];
         if (furthest == pSpawner) furthest = playerSpawners[1];
 
-        float furthestDist = Vector3.Distance(pSpawner.transform.position, furthest.transform.position);
+        float furthestDist = Vector3.Distance(pSpawner.transform.localPosition, furthest.transform.localPosition);
 
         foreach (var s in playerSpawners)
         {
             if (s == pSpawner) continue;
-            float dist = Vector3.Distance(pSpawner.transform.position, s.transform.position);
+            float dist = Vector3.Distance(pSpawner.transform.localPosition, s.transform.localPosition);
 
             if (dist > furthestDist)
             {
@@ -334,11 +338,11 @@ public class GameManager : MonoBehaviour
     private PlayerSpawner SpawnInFurthestSpawner(Vector3 location, Icreature opponent)
     {
         PlayerSpawner furthest = playerSpawners[0];
-        float furthestDist = Vector3.Distance(location, furthest.transform.position);
+        float furthestDist = Vector3.Distance(location, furthest.transform.localPosition);
 
         foreach (var s in playerSpawners)
         {
-            float dist = Vector3.Distance(location, s.transform.position);
+            float dist = Vector3.Distance(location, s.transform.localPosition);
 
             if (dist > furthestDist)
             {
@@ -352,4 +356,36 @@ public class GameManager : MonoBehaviour
         return furthest;
     }
 
+    public void MoveToNextPhase()
+    {
+        switch (currentPhase)
+        {
+            case CurriculumPhase.DestroyImmobileTarget1:
+                Debug.Log("Moving to phase 2");
+                currentPhase = CurriculumPhase.DestroyImmobileTarget2;
+                break;
+            case CurriculumPhase.DestroyImmobileTarget2:
+                Debug.Log("Moving to phase 3");
+                currentPhase = CurriculumPhase.DestroyImmobileTarget3;
+                break;
+            case CurriculumPhase.DestroyImmobileTarget3:
+                Debug.Log("Moving to phase 4");
+                currentPhase = CurriculumPhase.DestroyImmobileTarget4;
+                break;
+            case CurriculumPhase.DestroyImmobileTarget4:
+                Debug.Log("Moving to phase 5");
+                currentPhase = CurriculumPhase.DestroyMobileTarget;
+                break;
+            case CurriculumPhase.DestroyMobileTarget:
+                Debug.Log("Moving to phase 6");
+                currentPhase = CurriculumPhase.BattleSelf;
+                break;
+            case CurriculumPhase.BattleSelf:
+                //do nothing
+                break;
+            default:
+                break;
+        }
+
+    }
 }
