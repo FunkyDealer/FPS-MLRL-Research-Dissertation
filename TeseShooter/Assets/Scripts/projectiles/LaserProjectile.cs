@@ -26,7 +26,7 @@ public class LaserProjectile : Projectile
 
         RaycastHit hit;
         // Does the ray intersect any objects excluding the player layer
-        if (Physics.Raycast(transform.localPosition, direction, out hit, 100, HittableLayers))
+        if (Physics.Raycast(transform.localPosition, direction, out hit, 80, HittableLayers))
         {
             end = hit.point;
             end = start + direction * hit.distance;
@@ -50,7 +50,7 @@ public class LaserProjectile : Projectile
         }
         else
         {
-            end = start + direction * 100;
+            end = start + direction * 80;
 
             lineRenderer.startColor = HitNothingColor;
             lineRenderer.endColor = HitNothingColor;

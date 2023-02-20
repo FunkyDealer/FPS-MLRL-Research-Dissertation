@@ -7,6 +7,8 @@ using UnityEngine;
 
 public class Player : Agent, Icreature
 {
+    // mlagents-learn --run-id=ShooterAgent<id> ConfigFiles/ShootingConfig.yaml
+
     [SerializeField]
     protected int maxHealth;
     protected int currentHealth;
@@ -56,7 +58,7 @@ public class Player : Agent, Icreature
     private Transform shootingPoint;
 
     //Mouse stuff
-    float sensitivity = 10F;
+    float sensitivity = 1F;
     float rotationX = 0F;
     float rotationY = 0F;
     float rotArrayX;
@@ -127,7 +129,6 @@ public class Player : Agent, Icreature
     public override void OnEpisodeBegin()
     {
         //base.OnEpisodeBegin();
-
         Debug.Log("Episode Start");
 
         score = 0;
@@ -174,7 +175,6 @@ public class Player : Agent, Icreature
             shootWeapon(shootingPoint);
         }
 
-
         //Rotate
         transform.localRotation = originalRotation[1] * lookInput[1];
         playerCamera.localRotation = originalRotation[0] * lookInput[0];
@@ -189,7 +189,6 @@ public class Player : Agent, Icreature
         }
 
         ResetInput();
-
 
         if (StepCount > ManualMaxStep) //manually end episode
         {
@@ -216,8 +215,8 @@ public class Player : Agent, Icreature
         float mouseY = Input.GetAxis("Mouse Y");
         float mouseX = Input.GetAxis("Mouse X");
 
-        inputs[2] = mouseY;
-        inputs[3] = mouseX;
+       // inputs[2] = mouseY;
+        inputs[2] = mouseX;
 
         shootingAction[0] = 0;
         if (Input.GetButton("Fire1")) {
@@ -236,7 +235,7 @@ public class Player : Agent, Icreature
         float HorizontalInput = axis[0];
         float VerticalInput = axis[1];
 
-        lookInput = MouseInput(axis[2], axis[3]);
+        lookInput = MouseInput(0, axis[2]);
 
         movementInput = new Vector2(HorizontalInput, VerticalInput);
 
@@ -249,7 +248,6 @@ public class Player : Agent, Icreature
     //input to the neural network
     public override void CollectObservations(VectorSensor sensor)
     {
-
         //3 float for position
         sensor.AddObservation(transform.localPosition.x);
         sensor.AddObservation(transform.localPosition.y);
@@ -264,7 +262,7 @@ public class Player : Agent, Icreature
         sensor.AddObservation(lastEnemySeenPosition.z);
         
         //1 floats for rotation in degrees of last seen enemy
-        sensor.AddObservation(lastEnemyRotation);
+        //sensor.AddObservation(lastEnemyRotation);
 
         //3 floats for last heard sound position
         sensor.AddObservation(lastEnemyHeardPosition.x);
@@ -272,7 +270,7 @@ public class Player : Agent, Icreature
         sensor.AddObservation(lastEnemyHeardPosition.z);
 
         //1 float for weapon firing readiness
-        sensor.AddObservation(canShoot);
+        //sensor.AddObservation(canShoot);
 
         //1 float for enemy was hit last frame
         sensor.AddObservation(HitEnemy);
@@ -282,11 +280,11 @@ public class Player : Agent, Icreature
         sensor.AddObservation(maxHealth - currentHealth);
 
         //3 float for nearest health pickup position
-        sensor.AddObservation(nearestHealthKit.x);
-        sensor.AddObservation(nearestHealthKit.y);
-        sensor.AddObservation(nearestHealthKit.z);
+        //sensor.AddObservation(nearestHealthKit.x);
+        //sensor.AddObservation(nearestHealthKit.y);
+        //sensor.AddObservation(nearestHealthKit.z);
 
-        //total 3 + 1 + 3 + 1 + 3 + 1 + 1 + 1 + 3 = 17
+        //total 3 + 1 + 3 + 3 + 1 + 1 = 12
     }
 
     private void ResetInput()
@@ -301,7 +299,10 @@ public class Player : Agent, Icreature
         rotAverageX = 0f;
 
         //Gets rotational input from the mouse
-        rotationY += (YInput * sensitivity) * 100 * Time.deltaTime;
+        //if (gameManager.currentPhase != GameManager.CurriculumPhase.DestroyImmobileTarget1 && gameManager.currentPhase != GameManager.CurriculumPhase.DestroyImmobileTarget2)
+        //{
+        //    rotationY += (YInput * sensitivity) * 100 * Time.deltaTime;
+        //}
         rotationX += (XInput * sensitivity) * 100 * Time.deltaTime;
 
         rotationY = Mathf.Clamp(rotationY, -90, 90);
@@ -405,42 +406,47 @@ public class Player : Agent, Icreature
         float horizontalAngle = Vector3.Angle(direction, this.transform.forward);
         float verticalAngle = Vector3.Angle(direction, playerCamera.forward);
 
-        if (horizontalAngle < 45 && verticalAngle < 35) //enemy is within the agent's field of vision
+        if (verticalAngle < 35)
         {
-            RaycastHit hit;
-            if (Physics.Raycast(transform.position, direction, out hit, 1000))
+            AddReward(0.0003f);
+            if (horizontalAngle < 45) //enemy is within the agent's field of vision
             {
-                //Debug.DrawRay(transform.localPosition, direction * hit.distance, Color.red);
-
-                if (hit.collider.gameObject.CompareTag("Player")) //Agent can see the Enemy
+                RaycastHit hit;
+                if (Physics.Raycast(transform.position, direction, out hit, 1000))
                 {
-                    Debug.DrawLine(transform.position, hit.point, Color.red);
-                    lastEnemySeenPosition = info.pos;
-                    lastEnemyRotation = info.degreeRotation;
+                    //Debug.DrawRay(transform.localPosition, direction * hit.distance, Color.red);
 
-                    if (horizontalAngle < 15f && verticalAngle < 10f) //agent has enemy in target sight
+                    if (hit.collider.gameObject.CompareTag("Player")) //Agent can see the Enemy
                     {
                         Debug.DrawLine(transform.position, hit.point, Color.red);
-                        AddReward(0.0006f);
+                        lastEnemySeenPosition = info.pos;
+                        lastEnemyRotation = info.degreeRotation;
+
+                        if (horizontalAngle < 15f && verticalAngle < 10f) //agent has enemy in target sight
+                        {
+                            Debug.DrawLine(transform.position, hit.point, Color.red);
+                            AddReward(0.002f);
+                        }
+                        else
+                        {
+                            Debug.DrawLine(transform.position, hit.point, Color.yellow);
+                            AddReward(0.001f);
+                        }
                     }
-                    else {
-                        Debug.DrawLine(transform.position, hit.point, Color.yellow);
-                        AddReward(0.0003f);
+                    else //enemy is blocked by something
+                    {
+                        Debug.DrawLine(transform.position, hit.point, Color.green);
                     }
                 }
-                else //enemy is blocked by something
+                else
                 {
-                    Debug.DrawLine(transform.position, hit.point, Color.green);
+                    Debug.DrawRay(transform.position, direction * 1000, Color.blue);
                 }
-            }
-            else
-            {
-                Debug.DrawRay(transform.position, direction * 1000, Color.blue);
             }
         }
         else if (verticalAngle > 60) //check to see if the agent isn't looking up or down, which is unnecessary 
         {
-                AddReward(-0.005f);
+            AddReward(-0.005f);
         }
     }
     public void Respawn(Vector3 location, Quaternion rotation)
@@ -482,7 +488,7 @@ public class Player : Agent, Icreature
         {
             if (currentHealth < maxHealth / 2)
             {
-                AddReward(0.05f); //Reward agent for picking up health while it is less than half. 
+                AddReward(2f); //Reward agent for picking up health while it is less than half. 
             }
 
             currentHealth += ammount; //fill health
@@ -533,11 +539,11 @@ public class Player : Agent, Icreature
 
         if (info.Hit)
         {
-            AddReward(0.01f); //reward for hitting enemy
+            AddReward(2); //reward for hitting enemy
 
             if (info.Destroy)
             {
-                AddReward(0.2f); //Reward for destroying enemy
+                AddReward(10); //Reward for destroying enemy
                 score++;                
 
                 if (score == gameManager.maxScore) //if agent reaches max score, end episode
@@ -566,7 +572,7 @@ public class Player : Agent, Icreature
         score = 0;
 
         Debug.Log("ending episode in sucess");
-        AddReward(1);
+        AddReward(15);
 
         ConsecutiveWinsThisPhase++;
         if (ConsecutiveWinsThisPhase == 5)
