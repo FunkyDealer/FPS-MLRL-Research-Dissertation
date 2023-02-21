@@ -79,13 +79,16 @@ public class Player : Agent, Icreature
     bool HitEnemy = false;
 
     [SerializeField]
-    Transform StorageSpace;
+    Transform storageSpace;
 
     public int score { get; private set; } //agent's current score this episode
     int ConsecutiveWinsThisPhase = 0;
 
     [SerializeField]
     int ManualMaxStep = 1000;
+
+    [SerializeField]
+    bool clone = false;
     
 
     private void Awake()
@@ -116,26 +119,16 @@ public class Player : Agent, Icreature
 
     }
 
-    public override void Initialize()
-    {
-        MaxStep = 0;
-
-        if (!Academy.Instance.IsCommunicatorOn)
-        {
-            this.MaxStep = 0;
-        }
-    }
-
     public override void OnEpisodeBegin()
     {
-        //base.OnEpisodeBegin();
-        Debug.Log("Episode Start");
-
         score = 0;
 
         SetMaxStep();
 
-        gameManager.StartMatch();        
+        if (!clone)
+        {            
+            gameManager.StartMatch();
+        }
 
     }
 
@@ -143,11 +136,7 @@ public class Player : Agent, Icreature
     void Update()
     {
 
-        //if (Input.GetKeyDown(KeyCode.L))
-        //{
-        //    currentHealth -= 50;
-        //    Debug.Log($"health is now {currentHealth}");
-        //}
+
     }
 
     void FixedUpdate()
@@ -183,7 +172,7 @@ public class Player : Agent, Icreature
         {
             if (canStep)
             {
-                PlaySound();
+                TransmitSound();
                 StartCoroutine(StepDelay());
             }
         }
@@ -192,7 +181,7 @@ public class Player : Agent, Icreature
 
         if (StepCount > ManualMaxStep) //manually end episode
         {
-            EndEpisodeInFailure();
+           if (!clone) EndEpisodeInFailure();
         }
     }
 
@@ -215,7 +204,13 @@ public class Player : Agent, Icreature
         float mouseY = Input.GetAxis("Mouse Y");
         float mouseX = Input.GetAxis("Mouse X");
 
-       // inputs[2] = mouseY;
+        if (Input.GetKeyDown(KeyCode.L))
+        {
+            currentHealth -= 50;
+            Debug.Log($"health is now {currentHealth}");
+        }
+
+        // inputs[2] = mouseY;
         inputs[2] = mouseX;
 
         shootingAction[0] = 0;
@@ -373,9 +368,19 @@ public class Player : Agent, Icreature
     {
         GameObject o = Instantiate(laserProjectile, shootingPoint.position, Quaternion.identity);
         LaserProjectile l = o.GetComponent<LaserProjectile>();
-        PlaySound();
+        TransmitSound();
         l.direction = shootingPoint.forward;
         l.shooter = this;
+    }
+
+    protected void TransmitSound()
+    {
+        Vector3 position = this.transform.localPosition;
+        Icreature e = this;
+
+        SoundInfo info = new SoundInfo(position, e);
+
+        gameManager.TransmitSound(info);
     }
 
     public void receiveSound(SoundInfo sound)
@@ -406,6 +411,8 @@ public class Player : Agent, Icreature
         float horizontalAngle = Vector3.Angle(direction, this.transform.forward);
         float verticalAngle = Vector3.Angle(direction, playerCamera.forward);
 
+        Vector3 offset = Vector3.up * 5;
+
         if (verticalAngle < 35)
         {
             AddReward(0.0003f);
@@ -418,29 +425,29 @@ public class Player : Agent, Icreature
 
                     if (hit.collider.gameObject.CompareTag("Player")) //Agent can see the Enemy
                     {
-                        Debug.DrawLine(transform.position, hit.point, Color.red);
+                        Debug.DrawLine(transform.position + offset, hit.point + offset, Color.red);
                         lastEnemySeenPosition = info.pos;
                         lastEnemyRotation = info.degreeRotation;
 
                         if (horizontalAngle < 15f && verticalAngle < 10f) //agent has enemy in target sight
                         {
-                            Debug.DrawLine(transform.position, hit.point, Color.red);
+                            Debug.DrawLine(transform.position + offset, hit.point + offset, Color.red);
                             AddReward(0.002f);
                         }
                         else
                         {
-                            Debug.DrawLine(transform.position, hit.point, Color.yellow);
+                            Debug.DrawLine(transform.position + offset, hit.point + offset, Color.yellow);
                             AddReward(0.001f);
                         }
                     }
                     else //enemy is blocked by something
                     {
-                        Debug.DrawLine(transform.position, hit.point, Color.green);
+                        Debug.DrawLine(transform.position + offset, hit.point + offset, Color.green);
                     }
                 }
                 else
                 {
-                    Debug.DrawRay(transform.position, direction * 1000, Color.blue);
+                    Debug.DrawRay(transform.position + offset, direction * 1000, Color.blue);
                 }
             }
         }
@@ -451,7 +458,9 @@ public class Player : Agent, Icreature
     }
     public void Respawn(Vector3 location, Quaternion rotation)
     {
-        //gameObject.SetActive(true);
+        Debug.Log($"{gameObject.name} is respawning");
+
+        gameObject.SetActive(true);
         transform.position = location;
         transform.rotation = rotation;
 
@@ -466,20 +475,8 @@ public class Player : Agent, Icreature
 
         //Debug.Log($"{gameObject.name}: health is now {currentHealth}");
 
-        PlaySound();
+        TransmitSound();
 
-        lastEnemyHeardPosition = Vector3.zero;
-        lastEnemySeenPosition = Vector3.zero;
-    }
-
-    protected void PlaySound()
-    {
-        Vector3 position = this.transform.localPosition;
-        Icreature e = this;
-
-        SoundInfo info = new SoundInfo(position, e);
-
-        gameManager.TransmitSound(info);
     }
 
     public bool ReceiveHealth(int ammount)
@@ -514,7 +511,8 @@ public class Player : Agent, Icreature
         if (currentHealth <= 0)
         {
             currentHealth = 0;
-            gameObject.SetActive(false);
+            //gameObject.SetActive(false);
+            AddReward(-10);
             return true;
         }
         else
@@ -540,19 +538,17 @@ public class Player : Agent, Icreature
         if (info.Hit)
         {
             AddReward(2); //reward for hitting enemy
-
             if (info.Destroy)
             {
                 AddReward(10); //Reward for destroying enemy
-                score++;                
-
+                score++;               
                 if (score == gameManager.maxScore) //if agent reaches max score, end episode
                 {
                     EndEpisodeInSuccess();
                 }
                 else //if max has not been reaches, respawn opponent, continue episode
                 {
-                    gameManager.ContinueEpisode();
+                    gameManager.ContinueEpisode(this);
                 }
             }
         }
@@ -564,7 +560,11 @@ public class Player : Agent, Icreature
 
     public void Store()
     {
-        //do nothing
+       // transform.localPosition = storageSpace.localPosition;
+        transform.rotation = Quaternion.identity;
+
+
+       // gameObject.SetActive(false);
     }
 
     private void EndEpisodeInSuccess()
@@ -575,26 +575,24 @@ public class Player : Agent, Icreature
         AddReward(15);
 
         ConsecutiveWinsThisPhase++;
-        if (ConsecutiveWinsThisPhase == 5)
+        if (ConsecutiveWinsThisPhase == 2)
         {
             ConsecutiveWinsThisPhase = 0;
             gameManager.MoveToNextPhase();
         }
 
         //end episode
-        gameManager.EndEpisode();
-        EndEpisode(); //end current episode
+        gameManager.EndEpisode(); //end current episode
     }
 
     private void EndEpisodeInFailure()
     {
+        Debug.Log("ending episode in sucess");
         score = 0;
-
-        gameManager.EndEpisode();
 
         ConsecutiveWinsThisPhase = 0;
 
-        EndEpisode();
+        gameManager.EndEpisode();
     }
 
     private void SetMaxStep()

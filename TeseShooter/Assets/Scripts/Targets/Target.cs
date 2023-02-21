@@ -29,8 +29,13 @@ public class Target : MonoBehaviour, Icreature
     // Start is called before the first frame update
     void Start()
     {
+       
 
+    }
 
+    void OnEnable()
+    {
+        Debug.Log("Target Starting");
     }
 
     // Update is called once per frame
@@ -90,7 +95,7 @@ public class Target : MonoBehaviour, Icreature
 
     public virtual void Respawn(Vector3 location, Quaternion rotation)
     {
-        gameObject.SetActive(true);
+        this.gameObject.SetActive(true);
         transform.position = location;
         transform.rotation = rotation;
 
@@ -98,7 +103,7 @@ public class Target : MonoBehaviour, Icreature
         canShoot = true;
         canStep = true;
 
-        Debug.Log($"{gameObject.name}: health is now {currentHealth}");
+        Debug.Log($"{gameObject.name} is spawning");
 
         PlaySound();
     }
@@ -165,11 +170,11 @@ public class Target : MonoBehaviour, Icreature
 
     public void Store()
     {
-        transform.localPosition = storageSpace.localPosition;
+        //transform.localPosition = storageSpace.localPosition;
         transform.rotation = Quaternion.identity;
 
 
-        gameObject.SetActive(false);
+        //gameObject.SetActive(false);
 
     }
 }

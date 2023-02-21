@@ -20,10 +20,13 @@ public class MobileTarget : Target
     bool canRunAI = false;
     int StepCounter = 0;
 
+    Rigidbody myRigidBody;
+    int stepDelayCounter = 0;
 
     protected override void Awake()
     {
         base.Awake();
+        myRigidBody = GetComponent<Rigidbody>();
         navMeshAgent = GetComponent<NavMeshAgent>();
 
         moveBehaviour = GetComponent<AIMoveBehaviour>();
@@ -51,6 +54,26 @@ public class MobileTarget : Target
     {
         base.FixedUpdate();
 
+
+        if (navMeshAgent.velocity.magnitude > 0.01f) moving = true;
+        else moving = false;
+
+        if (moving && canStep)
+        {
+                TransmitSound();
+                canStep = false;
+        }
+
+        if (!canStep)
+        {
+            stepDelayCounter++;
+            if (stepDelayCounter > 100)
+            {
+                stepDelayCounter = 0;
+                canStep = true;
+            } 
+        }
+
         StepCounter++;
 
         if (StepCounter <= 20)
@@ -71,6 +94,16 @@ public class MobileTarget : Target
         }
 
 
+    }
+
+    protected void TransmitSound()
+    {
+        Vector3 position = this.transform.localPosition;
+        Icreature e = this;
+
+        SoundInfo info = new SoundInfo(position, e);
+
+        gameManager.TransmitSound(info);
     }
 
     public void CancelWayPoint()
@@ -96,5 +129,6 @@ public class MobileTarget : Target
 
         return furthest;
     }
+
 
 }

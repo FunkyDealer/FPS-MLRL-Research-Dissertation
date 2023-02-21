@@ -22,7 +22,7 @@ public class GameManager : MonoBehaviour
 
     public List<Icreature> MatchParticipants { get; private set; }
 
-    Icreature Opponent = null;
+    Icreature Opponent;
 
     [SerializeField]
     private List<PlayerSpawner> playerSpawners = new List<PlayerSpawner>();
@@ -53,11 +53,14 @@ public class GameManager : MonoBehaviour
     [SerializeField]
     private ObstacleManager obstacleManager;
 
+    public int MatchParticipantsNr;
+
     private void Awake()
     {
 
         if (MatchParticipants == null) MatchParticipants = new List<Icreature>();
 
+        MatchParticipantsNr = MatchParticipants.Count;
     }
 
 
@@ -73,8 +76,15 @@ public class GameManager : MonoBehaviour
 
     }
 
+    private void FixedUpdate()
+    {
+        MatchParticipantsNr = MatchParticipants.Count;
+    }
+
     public void StartMatch()
     {
+        Debug.Log("Episode Start");
+
         switch (currentPhase)
         {
             case CurriculumPhase.DestroyImmobileTarget1: //Max score: 1
@@ -103,7 +113,10 @@ public class GameManager : MonoBehaviour
 
                 break;
             case CurriculumPhase.BattleSelf: //max score: 5
-                maxScore = 4;
+                maxScore = 2;
+
+                FetchOpponent(AgentClone);
+                MasterTraining();
 
                 break;
             default:
@@ -164,9 +177,34 @@ public class GameManager : MonoBehaviour
 
     }
 
-    //Continue episode in case the score isn't maxed yet
-    public void ContinueEpisode()
+    void MasterTraining()
     {
+        MatchParticipants.Clear();
+        MatchParticipants.Add(player);
+        MatchParticipants.Add(Opponent);
+
+        //1. Set Obstacles on
+        obstacleManager.Activate();
+
+        //2. Spawn Agent in a random pre place spawner
+
+        PlayerSpawner pSpawner = SpawnInRandomSpawner(player);
+
+        //3. Spawn Target in furthest away spawner
+
+        PlayerSpawner ESpawner = SpawnInFurthestSpawner(pSpawner, Opponent);
+
+
+       
+    }
+
+    //Continue episode in case the score isn't maxed yet
+    public void ContinueEpisode(Icreature winner)
+    {
+        Debug.Log("Continuing episode");
+        //opponent is null
+        //if (Opponent == null) Debug.Log("Opponent was null");
+
         switch (currentPhase)
         {
             case CurriculumPhase.DestroyImmobileTarget2:
@@ -176,6 +214,7 @@ public class GameManager : MonoBehaviour
                 break;
             case CurriculumPhase.DestroyImmobileTarget3:
                 SpawnImmobileAgent3();
+
                 break;
             case CurriculumPhase.DestroyImmobileTarget4:
 
@@ -187,14 +226,17 @@ public class GameManager : MonoBehaviour
                 SpawnInFurthestSpawner(player.transform.localPosition, Opponent);
 
                 break;
-            case CurriculumPhase.BattleSelf:
+            case CurriculumPhase.BattleSelf:               
+                
+
+                if (winner == (Icreature)player) SpawnInFurthestSpawner(player.transform.position, Opponent);
+                else if (winner == Opponent) SpawnInFurthestSpawner(player.transform.position, player);
 
                 break;
             default:
                 break;
         }
     }
-
 
     public void EndEpisode()
     {
@@ -205,8 +247,17 @@ public class GameManager : MonoBehaviour
             p.SetToSleep();
         }
 
+        if (currentPhase == CurriculumPhase.BattleSelf)
+        {
+            player.EndEpisode();
+            (Opponent as Player).EndEpisode();
+        }
+        else {
+            player.EndEpisode();
+            
+        }
+
         CleanUpOpponent();
-        MatchParticipants.Clear();
     }
 
     private void FetchOpponent(GameObject OpponentObject)
@@ -218,11 +269,8 @@ public class GameManager : MonoBehaviour
 
     private void CleanUpOpponent()
     {
-        MatchParticipants.Remove(Opponent);
         Opponent.Store();
-        Opponent = null;
     }
-
 
     public void StartHealthRespawnTimer()
     {
@@ -244,7 +292,6 @@ public class GameManager : MonoBehaviour
 
         return result;
     }
-
 
     public void TransmitSound(SoundInfo info)
     {
@@ -280,6 +327,7 @@ public class GameManager : MonoBehaviour
     {
         Vector3 EnemySpawnPos = player.transform.position + player.transform.forward * 12;
 
+        Opponent.GetGameObject().SetActive(true);
         Opponent.Respawn(EnemySpawnPos, Quaternion.identity);
     }
 
@@ -291,6 +339,7 @@ public class GameManager : MonoBehaviour
         EnemySpawnPos += Random.insideUnitSphere * 10;
         EnemySpawnPos.y = y;
 
+        Opponent.GetGameObject().SetActive(true);
         Opponent.Respawn(EnemySpawnPos, Quaternion.identity);
     }
 
@@ -299,6 +348,8 @@ public class GameManager : MonoBehaviour
         //3. Spawn Opponent randomly in one of the object spawners
         PlayerSpawner OpponentSpawn = TrainingObjectSpawner[0];
         OpponentSpawn = TrainingObjectSpawner[Random.Range(0, TrainingObjectSpawner.Count)];
+
+        Opponent.GetGameObject().SetActive(true);
         OpponentSpawn.SpawnEntity(Opponent);
     }
 
@@ -306,6 +357,7 @@ public class GameManager : MonoBehaviour
     {
         PlayerSpawner playerSpawner = playerSpawners[0];
         playerSpawner = playerSpawners[Random.Range(0, playerSpawners.Count)];
+        p.GetGameObject().SetActive(true);
         playerSpawner.SpawnEntity(p);
 
         return playerSpawner;
@@ -316,12 +368,12 @@ public class GameManager : MonoBehaviour
         PlayerSpawner furthest = playerSpawners[0];
         if (furthest == pSpawner) furthest = playerSpawners[1];
 
-        float furthestDist = Vector3.Distance(pSpawner.transform.localPosition, furthest.transform.localPosition);
+        float furthestDist = Vector3.Distance(pSpawner.transform.position, furthest.transform.position);
 
         foreach (var s in playerSpawners)
         {
             if (s == pSpawner) continue;
-            float dist = Vector3.Distance(pSpawner.transform.localPosition, s.transform.localPosition);
+            float dist = Vector3.Distance(pSpawner.transform.position, s.transform.position);
 
             if (dist > furthestDist)
             {
@@ -330,6 +382,7 @@ public class GameManager : MonoBehaviour
             }
         }
 
+        opponent.GetGameObject().SetActive(true);
         furthest.SpawnEntity(opponent);
 
         return furthest;
@@ -338,11 +391,11 @@ public class GameManager : MonoBehaviour
     private PlayerSpawner SpawnInFurthestSpawner(Vector3 location, Icreature opponent)
     {
         PlayerSpawner furthest = playerSpawners[0];
-        float furthestDist = Vector3.Distance(location, furthest.transform.localPosition);
+        float furthestDist = Vector3.Distance(location, furthest.transform.position);
 
         foreach (var s in playerSpawners)
         {
-            float dist = Vector3.Distance(location, s.transform.localPosition);
+            float dist = Vector3.Distance(location, s.transform.position);
 
             if (dist > furthestDist)
             {
@@ -351,6 +404,7 @@ public class GameManager : MonoBehaviour
             }
         }
 
+        opponent.GetGameObject().SetActive(true);
         furthest.SpawnEntity(opponent);
 
         return furthest;
@@ -358,6 +412,8 @@ public class GameManager : MonoBehaviour
 
     public void MoveToNextPhase()
     {
+        Opponent.SetToSleep();
+
         switch (currentPhase)
         {
             case CurriculumPhase.DestroyImmobileTarget1:
@@ -388,4 +444,5 @@ public class GameManager : MonoBehaviour
         }
 
     }
+
 }
