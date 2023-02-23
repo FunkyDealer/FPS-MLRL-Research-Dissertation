@@ -541,6 +541,7 @@ public class Player : Agent, Icreature
             if (info.Destroy)
             {
                 AddReward(10); //Reward for destroying enemy
+                gameManager.IncreaseEpisodeLimit((int)(MaxStep * 0.2f));
                 score++;               
                 if (score == gameManager.maxScore) //if agent reaches max score, end episode
                 {
@@ -548,6 +549,7 @@ public class Player : Agent, Icreature
                 }
                 else //if max has not been reaches, respawn opponent, continue episode
                 {
+                    gameManager.IncreaseEpisodeLimit((int)(MaxStep * 0.5f));
                     gameManager.ContinueEpisode(this);
                 }
             }
@@ -600,25 +602,34 @@ public class Player : Agent, Icreature
         switch (gameManager.currentPhase)
         {
             case GameManager.CurriculumPhase.DestroyImmobileTarget1:
-                this.ManualMaxStep = 500;
+                this.ManualMaxStep = 250;
                 break;
             case GameManager.CurriculumPhase.DestroyImmobileTarget2:
-                this.ManualMaxStep = 800;
+                this.ManualMaxStep = 400;
                 break;
             case GameManager.CurriculumPhase.DestroyImmobileTarget3:
-                this.ManualMaxStep = 1300;
+                this.ManualMaxStep = 650;
                 break;
             case GameManager.CurriculumPhase.DestroyImmobileTarget4:
-                this.ManualMaxStep = 25000;
+                this.ManualMaxStep = 900;
                 break;
             case GameManager.CurriculumPhase.DestroyMobileTarget:
-                this.ManualMaxStep = 3000;
+                this.ManualMaxStep = 1500;
                 break;
             case GameManager.CurriculumPhase.BattleSelf:
-                this.ManualMaxStep = 50000;
+                this.ManualMaxStep = 2000;
                 break;
             default:
                 break;
         }
     }
+
+    public void IncreaseMaxStep(int ammount)
+    {      
+
+        this.ManualMaxStep += ammount;
+
+    }
+
+
 }

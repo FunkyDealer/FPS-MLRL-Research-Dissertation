@@ -14005,7 +14005,7 @@ GameObject:
   m_Icon: {fileID: 5132851093641282708, guid: 0000000000000000d000000000000000, type: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &310263984
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -42110,7 +42110,7 @@ GameObject:
   m_Icon: {fileID: 5132851093641282708, guid: 0000000000000000d000000000000000, type: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &949392580
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -50043,7 +50043,7 @@ GameObject:
   m_Icon: {fileID: 5132851093641282708, guid: 0000000000000000d000000000000000, type: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1115959008
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -56886,7 +56886,7 @@ GameObject:
   m_Icon: {fileID: 5132851093641282708, guid: 0000000000000000d000000000000000, type: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1282313513
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -57015,7 +57015,7 @@ GameObject:
   m_Icon: {fileID: 5132851093641282708, guid: 0000000000000000d000000000000000, type: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1282781296
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -80335,7 +80335,7 @@ GameObject:
   m_Icon: {fileID: 5132851093641282708, guid: 0000000000000000d000000000000000, type: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1803270557
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -87307,7 +87307,7 @@ GameObject:
   m_Icon: {fileID: 5132851093641282708, guid: 0000000000000000d000000000000000, type: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1952567639
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -93911,7 +93911,7 @@ GameObject:
   m_Icon: {fileID: 5132851093641282708, guid: 0000000000000000d000000000000000, type: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &2090620708
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -96972,6 +96972,14 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 836696187}
     m_Modifications:
+    - target: {fileID: 754947776348607788, guid: 1cc593646590ad14b990d806239efad1, type: 3}
+      propertyPath: m_Model
+      value: 
+      objectReference: {fileID: 5022602860645237092, guid: 6425e3834234c374ba119f1ed5def097, type: 3}
+    - target: {fileID: 754947776348607788, guid: 1cc593646590ad14b990d806239efad1, type: 3}
+      propertyPath: m_BehaviorType
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 5592302711375758930, guid: 1cc593646590ad14b990d806239efad1, type: 3}
       propertyPath: m_RootOrder
       value: 10
@@ -97292,12 +97300,16 @@ PrefabInstance:
     m_TransformParent: {fileID: 836696187}
     m_Modifications:
     - target: {fileID: 3842181713593844295, guid: fc4ae3f2b4ca9f648875242ae38ea9c7, type: 3}
+      propertyPath: m_Model
+      value: 
+      objectReference: {fileID: 5022602860645237092, guid: 8cd44f4dd5b4f0d4a94a40c3a5a68348, type: 3}
+    - target: {fileID: 3842181713593844295, guid: fc4ae3f2b4ca9f648875242ae38ea9c7, type: 3}
       propertyPath: m_BehaviorName
       value: ShootingAgent
       objectReference: {fileID: 0}
     - target: {fileID: 3842181713593844295, guid: fc4ae3f2b4ca9f648875242ae38ea9c7, type: 3}
       propertyPath: m_BehaviorType
-      value: 1
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 3842181713593844295, guid: fc4ae3f2b4ca9f648875242ae38ea9c7, type: 3}
       propertyPath: m_BrainParameters.VectorObservationSize

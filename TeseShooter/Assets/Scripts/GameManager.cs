@@ -184,7 +184,8 @@ public class GameManager : MonoBehaviour
         MatchParticipants.Add(Opponent);
 
         //1. Set Obstacles on
-        obstacleManager.Activate();
+        //obstacleManager.Activate();
+        obstacleManager.DeActive();
 
         //2. Spawn Agent in a random pre place spawner
 
@@ -443,6 +444,17 @@ public class GameManager : MonoBehaviour
                 break;
         }
 
+    }
+
+    public void IncreaseEpisodeLimit(int ammount)
+    {
+        foreach (var p in MatchParticipants)
+        {
+            if (p is Player)
+            {
+                (p as Player).IncreaseMaxStep(ammount);
+            }
+        }
     }
 
 }
