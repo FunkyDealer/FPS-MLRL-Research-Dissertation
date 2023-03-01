@@ -35,7 +35,7 @@ public class Target : MonoBehaviour, Icreature
 
     void OnEnable()
     {
-        Debug.Log("Target Starting");
+        //Debug.Log("Target Starting");
     }
 
     // Update is called once per frame
@@ -81,7 +81,7 @@ public class Target : MonoBehaviour, Icreature
             currentHealth += ammount;
 
             if (currentHealth > maxHealth) currentHealth = maxHealth;
-            Debug.Log($"health is now {currentHealth}");
+            //Debug.Log($"health is now {currentHealth}");
 
             return true;
         }
@@ -103,7 +103,7 @@ public class Target : MonoBehaviour, Icreature
         canShoot = true;
         canStep = true;
 
-        Debug.Log($"{gameObject.name} is spawning");
+        //Debug.Log($"{gameObject.name} is spawning");
 
         PlaySound();
     }

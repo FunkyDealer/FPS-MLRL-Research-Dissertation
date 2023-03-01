@@ -7,12 +7,15 @@ public class GameManager : MonoBehaviour
 {
     public enum CurriculumPhase
     {
-        DestroyImmobileTarget1,     //Phase 1 - Destroy Target directly in front
-        DestroyImmobileTarget2,     //Phase 2 - Destroy Target that is slightly off centered from the front of the agent
-        DestroyImmobileTarget3,     //Phase 3 - Destroy target that spawns randomly arround agent
-        DestroyImmobileTarget4,     //Phase 4 - Find and Destroy target in arena
-        DestroyMobileTarget,        //Phase 5 - Find and destroy target that moves in arena
-        BattleSelf                  //Phase 6 - Agent Fights agaisnt itself
+        Phase1_ImmobileTarget1,     //Phase 1 - Destroy Target directly in front
+        Phase2_ImmobileTarget2,     //Phase 2 - Destroy Target that is slightly off centered from the front of the agent
+        Phase3_ImmobileTarget3,     //Phase 3 - Destroy target that spawns randomly arround agent
+        Phase4_WanderingTarget1,    //phase 4 - Destroy target that spawn randomly arround agent and moves around
+        Phase5_Obstacles1,          //phase 5 - Agent spawn in middle, target spawns in random spawn, simple obstacles are on
+        Phase6_Obstacles2,          //phase 6 - agent spawns in middle, target spawn in random Spawn, final arena is on
+        Phase7_Arena1,              //Phase 7 - Find and Destroy target in the final arena
+        Phase8_Arena2,              //Phase 8 - Find and destroy target that moves in the arena
+        Phase9_BattleSelf           //Phase 9 - Agent Fights agaisnt itself
     }
 
     public CurriculumPhase currentPhase;
@@ -44,14 +47,18 @@ public class GameManager : MonoBehaviour
     [SerializeField]
     GameObject Immobiletarget;
     [SerializeField]
-    GameObject MobileTarget;
+    GameObject WanderingTarget;
+    [SerializeField]
+    GameObject MovingTarget;
     [SerializeField]
     GameObject AgentClone;
 
     public int maxScore { get; private set; } //max score in curriculum phase
 
     [SerializeField]
-    private ObstacleManager obstacleManager;
+    private ObstacleManager largeObstacles;
+    [SerializeField]
+    private ObstacleManager smallObstacles;
 
     public int MatchParticipantsNr;
 
@@ -83,36 +90,55 @@ public class GameManager : MonoBehaviour
 
     public void StartMatch()
     {
-        Debug.Log("Episode Start");
+        //Debug.Log("Episode Start");
 
         switch (currentPhase)
         {
-            case CurriculumPhase.DestroyImmobileTarget1: //Max score: 1
-            case CurriculumPhase.DestroyImmobileTarget2: //max score: 1
-            case CurriculumPhase.DestroyImmobileTarget3: //max score: 1
+            case CurriculumPhase.Phase1_ImmobileTarget1: //Max score: 1
+            case CurriculumPhase.Phase2_ImmobileTarget2: //max score: 1
+            case CurriculumPhase.Phase3_ImmobileTarget3: //max score: 1
                 maxScore = 1;
 
                 FetchOpponent(Immobiletarget);
-
                 StartBasicTraining();
 
                 break;
-            case CurriculumPhase.DestroyImmobileTarget4: //max score: 1
+            case CurriculumPhase.Phase4_WanderingTarget1:
+
+                maxScore = 1;
+
+                FetchOpponent(WanderingTarget);
+                StartBasicTraining();
+
+                break;
+            case CurriculumPhase.Phase5_Obstacles1:
+                maxScore = 1;
+
+                FetchOpponent(WanderingTarget);
+                ObstacleTraining();
+
+                break;
+            case CurriculumPhase.Phase6_Obstacles2:
+                maxScore = 1;
+
+                FetchOpponent(WanderingTarget);
+                ObstacleTraining();
+
+                break;
+            case CurriculumPhase.Phase7_Arena1: //max score: 2
                 maxScore = 2;
 
-                FetchOpponent(Immobiletarget);
-
+                FetchOpponent(WanderingTarget);
                 IntermediateTraining();
-
                 break;
-            case CurriculumPhase.DestroyMobileTarget: //max score: 3
+            case CurriculumPhase.Phase8_Arena2: //max score: 3
                 maxScore = 3;
 
-                FetchOpponent(MobileTarget);
+                FetchOpponent(MovingTarget);
                 IntermediateTraining();
 
                 break;
-            case CurriculumPhase.BattleSelf: //max score: 5
+            case CurriculumPhase.Phase9_BattleSelf: //max score: 5
                 maxScore = 2;
 
                 FetchOpponent(AgentClone);
@@ -127,7 +153,8 @@ public class GameManager : MonoBehaviour
     void StartBasicTraining()
     {
         //1. Set Obstacles off
-        obstacleManager.DeActive();
+        largeObstacles.DeActive();
+        smallObstacles.DeActive();
 
         //2. Spawn Agent in middle
         PlayerTrainingSpawner.SpawnEntity(player);
@@ -138,21 +165,50 @@ public class GameManager : MonoBehaviour
         MatchParticipants.Add(Opponent);
 
         //3. Spawn Target 
-        if (currentPhase == CurriculumPhase.DestroyImmobileTarget1)
+        if (currentPhase == CurriculumPhase.Phase1_ImmobileTarget1)
         {
             //directly in front of agent
             SpawnImmobileAgent1();
         }
-        else if (currentPhase == CurriculumPhase.DestroyImmobileTarget2)
+        else if (currentPhase == CurriculumPhase.Phase2_ImmobileTarget2)
         {
             //In front of agent
             SpawnImmobileAgent2();
         }
-        else if (currentPhase == CurriculumPhase.DestroyImmobileTarget3)
+        else if (currentPhase == CurriculumPhase.Phase3_ImmobileTarget3 || currentPhase == CurriculumPhase.Phase4_WanderingTarget1)
         {
             //in a random spawner around the middle
-            SpawnImmobileAgent3();
+            SpawnPraticeTargetAroundMiddle();
         }
+
+    }
+
+    void ObstacleTraining()
+    {
+        //1. Set Obstacles on
+
+        if (currentPhase == CurriculumPhase.Phase5_Obstacles1)
+        {
+            largeObstacles.Activate();
+            smallObstacles.DeActive();
+        }
+        else
+        {
+            largeObstacles.Activate();
+            smallObstacles.Activate();
+        }
+
+        //2. Spawn Agent in middle
+        PlayerTrainingSpawner.SpawnEntity(player);
+        player.RotateToRandom();
+
+        MatchParticipants.Clear();
+        MatchParticipants.Add(player);
+        MatchParticipants.Add(Opponent);
+
+        //3. Spawn Target in random spawner
+        SpawnInRandomSpawner(Opponent);
+
 
     }
 
@@ -164,7 +220,8 @@ public class GameManager : MonoBehaviour
         MatchParticipants.Add(Opponent);
 
         //1. Set Obstacles on
-        obstacleManager.Activate();
+        largeObstacles.Activate();
+        smallObstacles.Activate();
 
         //2. Spawn Agent in a random pre place spawner
 
@@ -184,8 +241,10 @@ public class GameManager : MonoBehaviour
         MatchParticipants.Add(Opponent);
 
         //1. Set Obstacles on
-        //obstacleManager.Activate();
-        obstacleManager.DeActive();
+        largeObstacles.Activate();
+        smallObstacles.Activate();
+        //largeObstacles.DeActive();
+        //smallObstacles.DeActive();
 
         //2. Spawn Agent in a random pre place spawner
 
@@ -202,32 +261,32 @@ public class GameManager : MonoBehaviour
     //Continue episode in case the score isn't maxed yet
     public void ContinueEpisode(Icreature winner)
     {
-        Debug.Log("Continuing episode");
+        //Debug.Log("Continuing episode");
         //opponent is null
         //if (Opponent == null) Debug.Log("Opponent was null");
 
         switch (currentPhase)
         {
-            case CurriculumPhase.DestroyImmobileTarget2:
+            case CurriculumPhase.Phase2_ImmobileTarget2:
 
                 SpawnImmobileAgent2();
 
                 break;
-            case CurriculumPhase.DestroyImmobileTarget3:
-                SpawnImmobileAgent3();
+            case CurriculumPhase.Phase3_ImmobileTarget3:
+                SpawnPraticeTargetAroundMiddle();
 
                 break;
-            case CurriculumPhase.DestroyImmobileTarget4:
+            case CurriculumPhase.Phase7_Arena1:
 
                 SpawnInFurthestSpawner(player.transform.localPosition, Opponent);
 
                 break;
-            case CurriculumPhase.DestroyMobileTarget:
+            case CurriculumPhase.Phase8_Arena2:
 
                 SpawnInFurthestSpawner(player.transform.localPosition, Opponent);
 
                 break;
-            case CurriculumPhase.BattleSelf:               
+            case CurriculumPhase.Phase9_BattleSelf:               
                 
 
                 if (winner == (Icreature)player) SpawnInFurthestSpawner(player.transform.position, Opponent);
@@ -241,14 +300,14 @@ public class GameManager : MonoBehaviour
 
     public void EndEpisode()
     {
-        Debug.Log("Ending Episode");
+        //Debug.Log("Ending Episode");
 
         foreach (var p in MatchParticipants)
         {
             p.SetToSleep();
         }
 
-        if (currentPhase == CurriculumPhase.BattleSelf)
+        if (currentPhase == CurriculumPhase.Phase9_BattleSelf)
         {
             player.EndEpisode();
             (Opponent as Player).EndEpisode();
@@ -344,7 +403,7 @@ public class GameManager : MonoBehaviour
         Opponent.Respawn(EnemySpawnPos, Quaternion.identity);
     }
 
-    private void SpawnImmobileAgent3()
+    private void SpawnPraticeTargetAroundMiddle()
     {
         //3. Spawn Opponent randomly in one of the object spawners
         PlayerSpawner OpponentSpawn = TrainingObjectSpawner[0];
@@ -417,27 +476,40 @@ public class GameManager : MonoBehaviour
 
         switch (currentPhase)
         {
-            case CurriculumPhase.DestroyImmobileTarget1:
-                Debug.Log("Moving to phase 2");
-                currentPhase = CurriculumPhase.DestroyImmobileTarget2;
+            case CurriculumPhase.Phase1_ImmobileTarget1:
+                //Debug.Log("Moving to phase 2");
+                currentPhase = CurriculumPhase.Phase2_ImmobileTarget2;
                 break;
-            case CurriculumPhase.DestroyImmobileTarget2:
-                Debug.Log("Moving to phase 3");
-                currentPhase = CurriculumPhase.DestroyImmobileTarget3;
+            case CurriculumPhase.Phase2_ImmobileTarget2:
+                //Debug.Log("Moving to phase 3");
+                currentPhase = CurriculumPhase.Phase3_ImmobileTarget3;
                 break;
-            case CurriculumPhase.DestroyImmobileTarget3:
-                Debug.Log("Moving to phase 4");
-                currentPhase = CurriculumPhase.DestroyImmobileTarget4;
+            case CurriculumPhase.Phase3_ImmobileTarget3:
+                //Debug.Log("Moving to phase 4");
+                currentPhase = CurriculumPhase.Phase4_WanderingTarget1;
                 break;
-            case CurriculumPhase.DestroyImmobileTarget4:
-                Debug.Log("Moving to phase 5");
-                currentPhase = CurriculumPhase.DestroyMobileTarget;
+            case CurriculumPhase.Phase4_WanderingTarget1:
+                //Debug.Log("Moving to phase 5");
+                currentPhase = CurriculumPhase.Phase5_Obstacles1;
                 break;
-            case CurriculumPhase.DestroyMobileTarget:
-                Debug.Log("Moving to phase 6");
-                currentPhase = CurriculumPhase.BattleSelf;
+
+            case CurriculumPhase.Phase5_Obstacles1:
+                //Debug.Log("Moving to phase 6");
+                currentPhase = CurriculumPhase.Phase6_Obstacles2;
                 break;
-            case CurriculumPhase.BattleSelf:
+            case CurriculumPhase.Phase6_Obstacles2:
+                //Debug.Log("Moving to phase 7");
+                currentPhase = CurriculumPhase.Phase7_Arena1;
+                break;
+            case CurriculumPhase.Phase7_Arena1:
+                //Debug.Log("Moving to phase 8");
+                currentPhase = CurriculumPhase.Phase8_Arena2;
+                break;
+            case CurriculumPhase.Phase8_Arena2:
+                //Debug.Log("Moving to phase 9");
+                currentPhase = CurriculumPhase.Phase9_BattleSelf;
+                break;
+            case CurriculumPhase.Phase9_BattleSelf:
                 //do nothing
                 break;
             default:

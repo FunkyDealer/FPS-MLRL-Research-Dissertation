@@ -207,7 +207,7 @@ public class Player : Agent, Icreature
         if (Input.GetKeyDown(KeyCode.L))
         {
             currentHealth -= 50;
-            Debug.Log($"health is now {currentHealth}");
+            //Debug.Log($"health is now {currentHealth}");
         }
 
         // inputs[2] = mouseY;
@@ -243,7 +243,7 @@ public class Player : Agent, Icreature
     //input to the neural network
     public override void CollectObservations(VectorSensor sensor)
     {
-        //3 float for position
+        //3 floats for position
         sensor.AddObservation(transform.localPosition.x);
         sensor.AddObservation(transform.localPosition.y);
         sensor.AddObservation(transform.localPosition.z);
@@ -265,11 +265,11 @@ public class Player : Agent, Icreature
         sensor.AddObservation(lastEnemyHeardPosition.z);
 
         //1 float for weapon firing readiness
-        //sensor.AddObservation(canShoot);
+        sensor.AddObservation(canShoot);
 
         //1 float for enemy was hit last frame
-        sensor.AddObservation(HitEnemy);
-        HitEnemy = false;
+        //sensor.AddObservation(HitEnemy);
+       // HitEnemy = false;
 
         //1 float for current health diference to max health
         sensor.AddObservation(maxHealth - currentHealth);
@@ -458,7 +458,7 @@ public class Player : Agent, Icreature
     }
     public void Respawn(Vector3 location, Quaternion rotation)
     {
-        Debug.Log($"{gameObject.name} is respawning");
+        //Debug.Log($"{gameObject.name} is respawning");
 
         gameObject.SetActive(true);
         transform.position = location;
@@ -491,7 +491,7 @@ public class Player : Agent, Icreature
             currentHealth += ammount; //fill health
 
             if (currentHealth > maxHealth) currentHealth = maxHealth; //don't let health overflow over the max 
-            Debug.Log($"health is now {currentHealth}");
+            //Debug.Log($"health is now {currentHealth}");
             
 
             return true;
@@ -520,7 +520,6 @@ public class Player : Agent, Icreature
             return false;
         }
     }
-
     public void SetGameManager(GameManager manager)
     {
         this.gameManager = manager;
@@ -538,18 +537,18 @@ public class Player : Agent, Icreature
         if (info.Hit)
         {
             AddReward(2); //reward for hitting enemy
+            gameManager.IncreaseEpisodeLimit((int)(ManualMaxStep * 0.2f)); //increase Episode limit
+
             if (info.Destroy)
             {
                 AddReward(10); //Reward for destroying enemy
-                gameManager.IncreaseEpisodeLimit((int)(MaxStep * 0.2f));
                 score++;               
                 if (score == gameManager.maxScore) //if agent reaches max score, end episode
                 {
                     EndEpisodeInSuccess();
                 }
-                else //if max has not been reaches, respawn opponent, continue episode
+                else //if max has not been reached, respawn opponent, continue episode
                 {
-                    gameManager.IncreaseEpisodeLimit((int)(MaxStep * 0.5f));
                     gameManager.ContinueEpisode(this);
                 }
             }
@@ -565,7 +564,6 @@ public class Player : Agent, Icreature
        // transform.localPosition = storageSpace.localPosition;
         transform.rotation = Quaternion.identity;
 
-
        // gameObject.SetActive(false);
     }
 
@@ -573,11 +571,11 @@ public class Player : Agent, Icreature
     {
         score = 0;
 
-        Debug.Log("ending episode in sucess");
+        //Debug.Log("ending episode in sucess");
         AddReward(15);
 
         ConsecutiveWinsThisPhase++;
-        if (ConsecutiveWinsThisPhase == 2)
+        if (ConsecutiveWinsThisPhase == 5)
         {
             ConsecutiveWinsThisPhase = 0;
             gameManager.MoveToNextPhase();
@@ -589,7 +587,7 @@ public class Player : Agent, Icreature
 
     private void EndEpisodeInFailure()
     {
-        Debug.Log("ending episode in sucess");
+        //Debug.Log("ending episode in sucess");
         score = 0;
 
         ConsecutiveWinsThisPhase = 0;
@@ -601,34 +599,50 @@ public class Player : Agent, Icreature
     {
         switch (gameManager.currentPhase)
         {
-            case GameManager.CurriculumPhase.DestroyImmobileTarget1:
-                this.ManualMaxStep = 250;
+            case GameManager.CurriculumPhase.Phase1_ImmobileTarget1:
+                this.ManualMaxStep = 500;
                 break;
-            case GameManager.CurriculumPhase.DestroyImmobileTarget2:
-                this.ManualMaxStep = 400;
+            case GameManager.CurriculumPhase.Phase2_ImmobileTarget2:
+                this.ManualMaxStep = 700;
                 break;
-            case GameManager.CurriculumPhase.DestroyImmobileTarget3:
-                this.ManualMaxStep = 650;
+            case GameManager.CurriculumPhase.Phase3_ImmobileTarget3:
+                this.ManualMaxStep = 700;
                 break;
-            case GameManager.CurriculumPhase.DestroyImmobileTarget4:
-                this.ManualMaxStep = 900;
+            case GameManager.CurriculumPhase.Phase4_WanderingTarget1:
+                this.ManualMaxStep = 800;
                 break;
-            case GameManager.CurriculumPhase.DestroyMobileTarget:
+            case GameManager.CurriculumPhase.Phase5_Obstacles1:
+                this.ManualMaxStep = 1000;
+                break;
+            case GameManager.CurriculumPhase.Phase6_Obstacles2:
+                this.ManualMaxStep = 1200;
+                break;
+            case GameManager.CurriculumPhase.Phase7_Arena1:
+                this.ManualMaxStep = 1200;
+                break;
+            case GameManager.CurriculumPhase.Phase8_Arena2:
                 this.ManualMaxStep = 1500;
                 break;
-            case GameManager.CurriculumPhase.BattleSelf:
+            case GameManager.CurriculumPhase.Phase9_BattleSelf:
                 this.ManualMaxStep = 2000;
                 break;
+
             default:
+                this.ManualMaxStep = 1000;                
                 break;
         }
     }
 
     public void IncreaseMaxStep(int ammount)
     {      
-
+        //Debug.Log("Increasing step ammount by " + ammount);
         this.ManualMaxStep += ammount;
+    }
 
+    public void ObstacleAvoidancePenalty()
+    {
+        AddReward(-0.001f);
+        //Debug.Log("2close to an obstacle");
     }
 
 

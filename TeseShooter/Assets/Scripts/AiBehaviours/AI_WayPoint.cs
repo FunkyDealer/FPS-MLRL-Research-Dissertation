@@ -4,12 +4,12 @@ using UnityEngine;
 
 public class AI_WayPoint : MonoBehaviour
 {
-    List<AIBehaviour> AIinside;
+    List<AIMoveBehaviour> AIinside;
 
     // Start is called before the first frame update
     void Start()
     {
-        AIinside = new List<AIBehaviour>();
+        AIinside = new List<AIMoveBehaviour>();
     }
 
     // Update is called once per frame
@@ -45,7 +45,7 @@ public class AI_WayPoint : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        AIBehaviour temp = other.GetComponent(typeof(AIBehaviour)) as AIBehaviour;
+        AIMoveBehaviour temp = other.GetComponent(typeof(AIMoveBehaviour)) as AIMoveBehaviour;
         if (temp != null)
         {
             AIinside.Add(temp);
@@ -60,7 +60,7 @@ public class AI_WayPoint : MonoBehaviour
 
     private void OnTriggerExit(Collider other)
     {
-        AIBehaviour temp = other.GetComponent(typeof(AIBehaviour)) as AIBehaviour;
+        AIMoveBehaviour temp = other.GetComponent(typeof(AIMoveBehaviour)) as AIMoveBehaviour;
         if (temp != null)
         {
             AIinside.Remove(temp);

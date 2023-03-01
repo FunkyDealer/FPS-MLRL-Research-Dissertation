@@ -1,0 +1,65 @@
+{
+    "ShootingAgent": {
+        "checkpoints": [
+            {
+                "steps": 11499993,
+                "file_path": "results\\Training1\\ShootingAgent\\ShootingAgent-11499993.onnx",
+                "reward": null,
+                "creation_time": 1677669470.4865546,
+                "auxillary_file_paths": [
+                    "results\\Training1\\ShootingAgent\\ShootingAgent-11499993.pt"
+                ]
+            },
+            {
+                "steps": 11999941,
+                "file_path": "results\\Training1\\ShootingAgent\\ShootingAgent-11999941.onnx",
+                "reward": 0.0840313530388812,
+                "creation_time": 1677670464.511793,
+                "auxillary_file_paths": [
+                    "results\\Training1\\ShootingAgent\\ShootingAgent-11999941.pt"
+                ]
+            },
+            {
+                "steps": 12499964,
+                "file_path": "results\\Training1\\ShootingAgent\\ShootingAgent-12499964.onnx",
+                "reward": null,
+                "creation_time": 1677671456.8705263,
+                "auxillary_file_paths": [
+                    "results\\Training1\\ShootingAgent\\ShootingAgent-12499964.pt"
+                ]
+            },
+            {
+                "steps": 12999997,
+                "file_path": "results\\Training1\\ShootingAgent\\ShootingAgent-12999997.onnx",
+                "reward": -0.806999459862709,
+                "creation_time": 1677672460.3160722,
+                "auxillary_file_paths": [
+                    "results\\Training1\\ShootingAgent\\ShootingAgent-12999997.pt"
+                ]
+            },
+            {
+                "steps": 13193521,
+                "file_path": "results\\Training1\\ShootingAgent\\ShootingAgent-13193521.onnx",
+                "reward": -2.649459749786183,
+                "creation_time": 1677672922.9815092,
+                "auxillary_file_paths": [
+                    "results\\Training1\\ShootingAgent\\ShootingAgent-13193521.pt"
+                ]
+            }
+        ],
+        "final_checkpoint": {
+            "steps": 13193521,
+            "file_path": "results\\Training1\\ShootingAgent.onnx",
+            "reward": -2.649459749786183,
+            "creation_time": 1677672922.9815092,
+            "auxillary_file_paths": [
+                "results\\Training1\\ShootingAgent\\ShootingAgent-13193521.pt"
+            ]
+        }
+    },
+    "metadata": {
+        "stats_format_version": "0.3.0",
+        "mlagents_version": "0.29.0",
+        "torch_version": "1.11.0+cu113"
+    }
+}

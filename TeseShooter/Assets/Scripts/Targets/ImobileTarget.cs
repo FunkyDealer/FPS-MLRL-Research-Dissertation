@@ -14,7 +14,7 @@ public class ImobileTarget : Target
     // Start is called before the first frame update
     void Start()
     {
-        Debug.Log("Target Starting");
+        //Debug.Log("Target Starting");
     }
 
     // Update is called once per frame
