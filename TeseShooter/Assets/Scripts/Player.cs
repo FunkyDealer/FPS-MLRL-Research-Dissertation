@@ -574,11 +574,14 @@ public class Player : Agent, Icreature
         //Debug.Log("ending episode in sucess");
         AddReward(15);
 
-        ConsecutiveWinsThisPhase++;
-        if (ConsecutiveWinsThisPhase == 5)
+        if (!gameManager.ReadyForPhaseUp)
         {
-            ConsecutiveWinsThisPhase = 0;
-            gameManager.MoveToNextPhase();
+            ConsecutiveWinsThisPhase++;
+            if (ConsecutiveWinsThisPhase == 5)
+            {
+                ConsecutiveWinsThisPhase = 0;
+                gameManager.MoveToNextPhase();
+            }
         }
 
         //end episode
@@ -641,7 +644,7 @@ public class Player : Agent, Icreature
 
     public void ObstacleAvoidancePenalty()
     {
-        AddReward(-0.001f);
+        AddReward(-0.01f);
         //Debug.Log("2close to an obstacle");
     }
 

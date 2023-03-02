@@ -62,12 +62,16 @@ public class GameManager : MonoBehaviour
 
     public int MatchParticipantsNr;
 
+    public bool ReadyForPhaseUp { get; private set; }
+
     private void Awake()
     {
 
         if (MatchParticipants == null) MatchParticipants = new List<Icreature>();
 
         MatchParticipantsNr = MatchParticipants.Count;
+
+        ReadyForPhaseUp = false;
     }
 
 
@@ -278,19 +282,28 @@ public class GameManager : MonoBehaviour
                 break;
             case CurriculumPhase.Phase7_Arena1:
 
-                SpawnInFurthestSpawner(player.transform.localPosition, Opponent);
+               // SpawnInFurthestSpawner(player.transform.localPosition, Opponent);
+                SpawnInRandomSpawner(Opponent);
 
                 break;
             case CurriculumPhase.Phase8_Arena2:
 
-                SpawnInFurthestSpawner(player.transform.localPosition, Opponent);
+                //SpawnInFurthestSpawner(player.transform.localPosition, Opponent);
+                SpawnInRandomSpawner(Opponent);
 
                 break;
-            case CurriculumPhase.Phase9_BattleSelf:               
-                
+            case CurriculumPhase.Phase9_BattleSelf:
 
-                if (winner == (Icreature)player) SpawnInFurthestSpawner(player.transform.position, Opponent);
-                else if (winner == Opponent) SpawnInFurthestSpawner(player.transform.position, player);
+                if (winner == (Icreature)player)
+                {
+                    //SpawnInFurthestSpawner(player.transform.position, Opponent);
+                    SpawnInRandomSpawner(Opponent);
+                }
+                else if (winner == Opponent)
+                {
+                    //SpawnInFurthestSpawner(player.transform.position, player);
+                    SpawnInRandomSpawner(player);
+                }
 
                 break;
             default:
@@ -472,7 +485,19 @@ public class GameManager : MonoBehaviour
 
     public void MoveToNextPhase()
     {
+        //Opponent.SetToSleep();
+
+        ReadyForPhaseUp = true;
+
+        TrainingManager.inst.CheckForPhaseUp();
+       
+
+    }
+
+    public void GoToNextPhase()
+    {
         Opponent.SetToSleep();
+        ReadyForPhaseUp = false;
 
         switch (currentPhase)
         {
@@ -515,7 +540,6 @@ public class GameManager : MonoBehaviour
             default:
                 break;
         }
-
     }
 
     public void IncreaseEpisodeLimit(int ammount)
