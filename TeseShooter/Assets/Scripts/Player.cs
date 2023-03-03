@@ -577,7 +577,7 @@ public class Player : Agent, Icreature
         if (!gameManager.ReadyForPhaseUp)
         {
             ConsecutiveWinsThisPhase++;
-            if (ConsecutiveWinsThisPhase == 5)
+            if (ConsecutiveWinsThisPhase == 10)
             {
                 ConsecutiveWinsThisPhase = 0;
                 gameManager.MoveToNextPhase();

@@ -53621,11 +53621,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   games:
   - {fileID: 836696188}
-  - {fileID: 110380647}
-  - {fileID: 57645101}
-  - {fileID: 1783613059}
-  - {fileID: 1635835893}
-  - {fileID: 1009465649}
 --- !u!4 &1765074609
 Transform:
   m_ObjectHideFlags: 0
