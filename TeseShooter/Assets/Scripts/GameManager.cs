@@ -11,11 +11,10 @@ public class GameManager : MonoBehaviour
         Phase2_ImmobileTarget2,     //Phase 2 - Destroy Target that is slightly off centered from the front of the agent
         Phase3_ImmobileTarget3,     //Phase 3 - Destroy target that spawns randomly arround agent
         Phase4_WanderingTarget1,    //phase 4 - Destroy target that spawn randomly arround agent and moves around
-        Phase5_Obstacles1,          //phase 5 - Agent spawn in middle, target spawns in random spawn, simple obstacles are on
-        Phase6_Obstacles2,          //phase 6 - agent spawns in middle, target spawn in random Spawn, final arena is on
-        Phase7_Arena1,              //Phase 7 - Find and Destroy target in the final arena
-        Phase8_Arena2,              //Phase 8 - Find and destroy target that moves in the arena
-        Phase9_BattleSelf           //Phase 9 - Agent Fights agaisnt itself
+        Phase5_Obstacles,           //phase 5 - Find and destroy target in final arena while spawning in middle
+        Phase6_Arena1,              //Phase 7 - Find and Destroy target in the final arena
+        Phase7_Arena2,              //Phase 8 - Find and destroy target that moves in the arena
+        Phase8_BattleSelf           //Phase 9 - Agent Fights agaisnt itself
     }
 
     public CurriculumPhase currentPhase;
@@ -57,8 +56,6 @@ public class GameManager : MonoBehaviour
 
     [SerializeField]
     private ObstacleManager largeObstacles;
-    [SerializeField]
-    private ObstacleManager smallObstacles;
 
     public int MatchParticipantsNr;
 
@@ -115,34 +112,30 @@ public class GameManager : MonoBehaviour
                 StartBasicTraining();
 
                 break;
-            case CurriculumPhase.Phase5_Obstacles1:
+
+            case CurriculumPhase.Phase5_Obstacles: //Max score: 1
                 maxScore = 1;
 
                 FetchOpponent(WanderingTarget);
                 ObstacleTraining();
 
                 break;
-            case CurriculumPhase.Phase6_Obstacles2:
-                maxScore = 1;
 
-                FetchOpponent(WanderingTarget);
-                ObstacleTraining();
 
-                break;
-            case CurriculumPhase.Phase7_Arena1: //max score: 2
+            case CurriculumPhase.Phase6_Arena1: //max score: 2
                 maxScore = 2;
 
                 FetchOpponent(WanderingTarget);
                 IntermediateTraining();
                 break;
-            case CurriculumPhase.Phase8_Arena2: //max score: 3
-                maxScore = 3;
+            case CurriculumPhase.Phase7_Arena2: //max score: 2
+                maxScore = 2;
 
                 FetchOpponent(MovingTarget);
                 IntermediateTraining();
 
                 break;
-            case CurriculumPhase.Phase9_BattleSelf: //max score: 5
+            case CurriculumPhase.Phase8_BattleSelf: //max score: 2
                 maxScore = 2;
 
                 FetchOpponent(AgentClone);
@@ -158,7 +151,6 @@ public class GameManager : MonoBehaviour
     {
         //1. Set Obstacles off
         largeObstacles.DeActive();
-        smallObstacles.DeActive();
 
         //2. Spawn Agent in middle
         PlayerTrainingSpawner.SpawnEntity(player);
@@ -190,17 +182,7 @@ public class GameManager : MonoBehaviour
     void ObstacleTraining()
     {
         //1. Set Obstacles on
-
-        if (currentPhase == CurriculumPhase.Phase5_Obstacles1)
-        {
-            largeObstacles.Activate();
-            smallObstacles.DeActive();
-        }
-        else
-        {
-            largeObstacles.Activate();
-            smallObstacles.Activate();
-        }
+        largeObstacles.Activate();
 
         //2. Spawn Agent in middle
         PlayerTrainingSpawner.SpawnEntity(player);
@@ -225,7 +207,6 @@ public class GameManager : MonoBehaviour
 
         //1. Set Obstacles on
         largeObstacles.Activate();
-        smallObstacles.Activate();
 
         //2. Spawn Agent in a random pre place spawner
 
@@ -246,9 +227,7 @@ public class GameManager : MonoBehaviour
 
         //1. Set Obstacles on
         largeObstacles.Activate();
-        smallObstacles.Activate();
         //largeObstacles.DeActive();
-        //smallObstacles.DeActive();
 
         //2. Spawn Agent in a random pre place spawner
 
@@ -280,19 +259,26 @@ public class GameManager : MonoBehaviour
                 SpawnPraticeTargetAroundMiddle();
 
                 break;
-            case CurriculumPhase.Phase7_Arena1:
+
+            case CurriculumPhase.Phase5_Obstacles:
+
+                SpawnInRandomSpawner(Opponent);
+
+                break;
+            case CurriculumPhase.Phase6_Arena1:
 
                // SpawnInFurthestSpawner(player.transform.localPosition, Opponent);
                 SpawnInRandomSpawner(Opponent);
 
                 break;
-            case CurriculumPhase.Phase8_Arena2:
+
+            case CurriculumPhase.Phase7_Arena2:
 
                 //SpawnInFurthestSpawner(player.transform.localPosition, Opponent);
                 SpawnInRandomSpawner(Opponent);
 
                 break;
-            case CurriculumPhase.Phase9_BattleSelf:
+            case CurriculumPhase.Phase8_BattleSelf:
 
                 if (winner == (Icreature)player)
                 {
@@ -320,7 +306,7 @@ public class GameManager : MonoBehaviour
             p.SetToSleep();
         }
 
-        if (currentPhase == CurriculumPhase.Phase9_BattleSelf)
+        if (currentPhase == CurriculumPhase.Phase8_BattleSelf)
         {
             player.EndEpisode();
             (Opponent as Player).EndEpisode();
@@ -501,41 +487,45 @@ public class GameManager : MonoBehaviour
 
         switch (currentPhase)
         {
-            case CurriculumPhase.Phase1_ImmobileTarget1:
-                //Debug.Log("Moving to phase 2");
+            case CurriculumPhase.Phase1_ImmobileTarget1://Move to phase 2
+
                 currentPhase = CurriculumPhase.Phase2_ImmobileTarget2;
                 break;
-            case CurriculumPhase.Phase2_ImmobileTarget2:
-                //Debug.Log("Moving to phase 3");
+
+            case CurriculumPhase.Phase2_ImmobileTarget2://Move to phase 3
+
                 currentPhase = CurriculumPhase.Phase3_ImmobileTarget3;
                 break;
-            case CurriculumPhase.Phase3_ImmobileTarget3:
-                //Debug.Log("Moving to phase 4");
+
+            case CurriculumPhase.Phase3_ImmobileTarget3://Move to phase 4
+
                 currentPhase = CurriculumPhase.Phase4_WanderingTarget1;
                 break;
-            case CurriculumPhase.Phase4_WanderingTarget1:
-                //Debug.Log("Moving to phase 5");
-                currentPhase = CurriculumPhase.Phase5_Obstacles1;
+
+            case CurriculumPhase.Phase4_WanderingTarget1: //Move to phase 5
+
+                currentPhase = CurriculumPhase.Phase5_Obstacles;
                 break;
 
-            case CurriculumPhase.Phase5_Obstacles1:
-                //Debug.Log("Moving to phase 6");
-                currentPhase = CurriculumPhase.Phase6_Obstacles2;
+            case CurriculumPhase.Phase5_Obstacles: //Move to phase 6
+
+                currentPhase = CurriculumPhase.Phase6_Arena1;
                 break;
-            case CurriculumPhase.Phase6_Obstacles2:
-                //Debug.Log("Moving to phase 7");
-                currentPhase = CurriculumPhase.Phase7_Arena1;
+
+            case CurriculumPhase.Phase6_Arena1: //Move to phase 7
+
+                currentPhase = CurriculumPhase.Phase7_Arena2;
                 break;
-            case CurriculumPhase.Phase7_Arena1:
-                //Debug.Log("Moving to phase 8");
-                currentPhase = CurriculumPhase.Phase8_Arena2;
+
+            case CurriculumPhase.Phase7_Arena2: //Move to phase 8
+
+                currentPhase = CurriculumPhase.Phase8_BattleSelf;
                 break;
-            case CurriculumPhase.Phase8_Arena2:
-                //Debug.Log("Moving to phase 9");
-                currentPhase = CurriculumPhase.Phase9_BattleSelf;
-                break;
-            case CurriculumPhase.Phase9_BattleSelf:
+
+            case CurriculumPhase.Phase8_BattleSelf: //do nothing
+
                 //do nothing
+
                 break;
             default:
                 break;

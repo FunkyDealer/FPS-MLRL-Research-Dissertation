@@ -183,6 +183,8 @@ public class Player : Agent, Icreature
         {
            if (!clone) EndEpisodeInFailure();
         }
+
+        AddReward(-0.003f); //Time penalty
     }
 
     void LateUpdate()
@@ -432,12 +434,12 @@ public class Player : Agent, Icreature
                         if (horizontalAngle < 15f && verticalAngle < 10f) //agent has enemy in target sight
                         {
                             Debug.DrawLine(transform.position + offset, hit.point + offset, Color.red);
-                            AddReward(0.002f);
+                            AddReward(0.004f);
                         }
                         else
                         {
                             Debug.DrawLine(transform.position + offset, hit.point + offset, Color.yellow);
-                            AddReward(0.001f);
+                            AddReward(0.002f);
                         }
                     }
                     else //enemy is blocked by something
@@ -512,7 +514,7 @@ public class Player : Agent, Icreature
         {
             currentHealth = 0;
             //gameObject.SetActive(false);
-            AddReward(-10);
+            AddReward(-2);
             return true;
         }
         else
@@ -540,9 +542,9 @@ public class Player : Agent, Icreature
             gameManager.IncreaseEpisodeLimit((int)(ManualMaxStep * 0.2f)); //increase Episode limit
 
             if (info.Destroy)
-            {
-                AddReward(10); //Reward for destroying enemy
-                score++;               
+            {               
+                score++;
+                AddReward(5 * score); //Reward for destroying enemy
                 if (score == gameManager.maxScore) //if agent reaches max score, end episode
                 {
                     EndEpisodeInSuccess();
@@ -555,7 +557,7 @@ public class Player : Agent, Icreature
         }
         else
         {
-            AddReward(-0.0008f); //penalty for missing enemy
+            AddReward(-0.02f); //penalty for missing enemy
         }
     }
 
@@ -572,7 +574,7 @@ public class Player : Agent, Icreature
         score = 0;
 
         //Debug.Log("ending episode in sucess");
-        AddReward(15);
+        AddReward(10 * gameManager.maxScore);
 
         if (!gameManager.ReadyForPhaseUp)
         {
@@ -614,19 +616,18 @@ public class Player : Agent, Icreature
             case GameManager.CurriculumPhase.Phase4_WanderingTarget1:
                 this.ManualMaxStep = 800;
                 break;
-            case GameManager.CurriculumPhase.Phase5_Obstacles1:
-                this.ManualMaxStep = 1000;
-                break;
-            case GameManager.CurriculumPhase.Phase6_Obstacles2:
+            case GameManager.CurriculumPhase.Phase5_Obstacles:
+
                 this.ManualMaxStep = 1200;
                 break;
-            case GameManager.CurriculumPhase.Phase7_Arena1:
+
+            case GameManager.CurriculumPhase.Phase6_Arena1:
                 this.ManualMaxStep = 1200;
                 break;
-            case GameManager.CurriculumPhase.Phase8_Arena2:
+            case GameManager.CurriculumPhase.Phase7_Arena2:
                 this.ManualMaxStep = 1500;
                 break;
-            case GameManager.CurriculumPhase.Phase9_BattleSelf:
+            case GameManager.CurriculumPhase.Phase8_BattleSelf:
                 this.ManualMaxStep = 2000;
                 break;
 
