@@ -89,6 +89,8 @@ public class Player : Agent, Icreature
 
     [SerializeField]
     bool clone = false;
+
+    int sucessfullGames = 0;
     
 
     private void Awake()
@@ -575,6 +577,10 @@ public class Player : Agent, Icreature
 
         //Debug.Log("ending episode in sucess");
         AddReward(10 * gameManager.maxScore);
+
+        sucessfullGames++;
+
+        Debug.Log($"Completed game number {sucessfullGames} sucessfully");
 
         if (!gameManager.ReadyForPhaseUp)
         {

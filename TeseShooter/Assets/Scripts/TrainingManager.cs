@@ -38,7 +38,7 @@ public class TrainingManager : MonoBehaviour
 
 
 
-    public void CheckForPhaseUp()
+    public void CheckForPhaseUp(int phase)
     {
         int ready = 0;
 
@@ -50,6 +50,8 @@ public class TrainingManager : MonoBehaviour
 
         if (gamesCount == 1 && ready > 0)
         {
+            Debug.Log($"Changing to phase {phase + 2}");
+
             foreach (var g in games)
             {
                 g.GoToNextPhase();

@@ -475,7 +475,7 @@ public class GameManager : MonoBehaviour
 
         ReadyForPhaseUp = true;
 
-        TrainingManager.inst.CheckForPhaseUp();
+        TrainingManager.inst.CheckForPhaseUp((int)currentPhase);
        
 
     }
