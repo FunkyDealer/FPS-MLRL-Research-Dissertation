@@ -11,6 +11,7 @@ public class PlayerRadar : MonoBehaviour
     void Start()
     {
         player = GetComponentInParent<Player>();
+        
     }
 
     // Update is called once per frame

@@ -117,8 +117,6 @@ public class Player : Agent, Icreature
 
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
-
-
     }
 
     public override void OnEpisodeBegin()
@@ -585,7 +583,7 @@ public class Player : Agent, Icreature
         if (!gameManager.ReadyForPhaseUp)
         {
             ConsecutiveWinsThisPhase++;
-            if (ConsecutiveWinsThisPhase == 10)
+            if (ConsecutiveWinsThisPhase == 5)
             {
                 ConsecutiveWinsThisPhase = 0;
                 gameManager.MoveToNextPhase();

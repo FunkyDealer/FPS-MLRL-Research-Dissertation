@@ -12,9 +12,9 @@ public class GameManager : MonoBehaviour
         Phase3_ImmobileTarget3,     //Phase 3 - Destroy target that spawns randomly arround agent
         Phase4_WanderingTarget1,    //phase 4 - Destroy target that spawn randomly arround agent and moves around
         Phase5_Obstacles,           //phase 5 - Find and destroy target in final arena while spawning in middle
-        Phase6_Arena1,              //Phase 7 - Find and Destroy target in the final arena
-        Phase7_Arena2,              //Phase 8 - Find and destroy target that moves in the arena
-        Phase8_BattleSelf           //Phase 9 - Agent Fights agaisnt itself
+        Phase6_Arena1,              //Phase 6 - Find and Destroy target in the final arena
+        Phase7_Arena2,              //Phase 7 - Find and destroy target that moves in the arena
+        Phase8_BattleSelf           //Phase 8 - Agent Fights agaisnt itself
     }
 
     public CurriculumPhase currentPhase;
